@@ -1,0 +1,38 @@
+﻿# Python / Django
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django
+*.log
+*.pot
+*.sqlite3
+media/
+staticfiles/
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+*.iws
+
+# Environnements / secrets
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
