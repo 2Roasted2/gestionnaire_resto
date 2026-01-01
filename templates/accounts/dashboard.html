@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord - Restaurant Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-tachometer-alt"></i> Tableau de bord
+            </h1>
+            <p class="lead text-muted">Bienvenue, {{ user.get_full_name }} - {{ user.get_role_display }}</p>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Utilisateurs actifs</h6>
+                            <h2 class="mb-0">{{ total_users }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Administrateurs</h6>
+                            <h2 class="mb-0">{{ total_admins }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Managers</h6>
+                            <h2 class="mb-0">{{ total_managers }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Personnel</h6>
+                            <h2 class="mb-0">{{ total_staff }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modules disponibles -->
+    <div class="row">
+        <div class="col">
+            <h3 class="mb-3">Modules disponibles</h3>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% if user.can_manage_personnel %}
+        <div class="col-md-4">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Gestion du Personnel</h5>
+                    <p class="card-text">Gérer les employés, contrats, présences et salaires</p>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.can_manage_inventory %}
+        <div class="col-md-4">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Gestion de Stock</h5>
+                    <p class="card-text">Suivre les stocks, approvisionnements et inventaires</p>
+                    <a href="#" class="btn btn-success">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.can_manage_accounting %}
+        <div class="col-md-4">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calculator fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Comptabilité</h5>
+                    <p class="card-text">Gérer les finances, factures et paiements</p>
+                    <a href="#" class="btn btn-warning">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.can_manage_reservations %}
+        <div class="col-md-4">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Réservations</h5>
+                    <p class="card-text">Gérer les réservations et plannings de tables</p>
+                    <a href="#" class="btn btn-info">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.can_manage_orders %}
+        <div class="col-md-4">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart fa-3x text-danger mb-3"></i>
+                    <h5 class="card-title">Commandes</h5>
+                    <p class="card-text">Gérer les commandes clients et la cuisine</p>
+                    <a href="#" class="btn btn-danger">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="col-md-4">
+            <div class="card h-100 hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-secondary mb-3"></i>
+                    <h5 class="card-title">Rapports</h5>
+                    <p class="card-text">Consulter les statistiques et rapports d'activité</p>
+                    <a href="#" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> Accéder
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
