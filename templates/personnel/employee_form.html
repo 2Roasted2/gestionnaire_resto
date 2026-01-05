@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} employé{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card shadow">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-user-plus"></i> {{ action }} un employé
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Informations utilisateur -->
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-user"></i> Informations de connexion
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            Nom d'utilisateur *
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            Email *
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                            Prénom *
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                            Nom *
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.role.id_for_label }}" class="form-label">
+                            Rôle *
+                        </label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <div class="text-danger small">{{ form.role.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.phone.id_for_label }}" class="form-label">
+                            Téléphone
+                        </label>
+                        {{ form.phone }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                            Date de naissance
+                        </label>
+                        {{ form.date_of_birth }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.address.id_for_label }}" class="form-label">
+                        Adresse
+                    </label>
+                    {{ form.address }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.photo.id_for_label }}" class="form-label">
+                        Photo
+                    </label>
+                    {{ form.photo }}
+                </div>
+
+                <!-- Informations employé -->
+                <h5 class="border-bottom pb-2 mb-3 mt-4">
+                    <i class="fas fa-id-card"></i> Informations employé
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.employee_id.id_for_label }}" class="form-label">
+                            Matricule *
+                        </label>
+                        {{ form.employee_id }}
+                        {% if form.employee_id.errors %}
+                            <div class="text-danger small">{{ form.employee_id.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.department.id_for_label }}" class="form-label">
+                            Département
+                        </label>
+                        {{ form.department }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.hire_date.id_for_label }}" class="form-label">
+                            Date d'embauche *
+                        </label>
+                        {{ form.hire_date }}
+                        {% if form.hire_date.errors %}
+                            <div class="text-danger small">{{ form.hire_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.gender.id_for_label }}" class="form-label">
+                            Genre *
+                        </label>
+                        {{ form.gender }}
+                        {% if form.gender.errors %}
+                            <div class="text-danger small">{{ form.gender.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.marital_status.id_for_label }}" class="form-label">
+                            Situation matrimoniale
+                        </label>
+                        {{ form.marital_status }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.nationality.id_for_label }}" class="form-label">
+                            Nationalité
+                        </label>
+                        {{ form.nationality }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.id_card_number.id_for_label }}" class="form-label">
+                        N° Carte d'identité
+                    </label>
+                    {{ form.id_card_number }}
+                </div>
+
+                <!-- Contact d'urgence -->
+                <h5 class="border-bottom pb-2 mb-3 mt-4">
+                    <i class="fas fa-phone-alt"></i> Contact d'urgence
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                            Nom du contact
+                        </label>
+                        {{ form.emergency_contact_name }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label">
+                            Téléphone du contact
+                        </label>
+                        {{ form.emergency_contact_phone }}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label">
+                            Relation
+                        </label>
+                        {{ form.emergency_contact_relation }}
+                    </div>
+                </div>
+
+                <!-- Autres informations -->
+                <h5 class="border-bottom pb-2 mb-3 mt-4">
+                    <i class="fas fa-info-circle"></i> Autres informations
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                            Date de fin (si applicable)
+                        </label>
+                        {{ form.end_date }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check mt-4">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Employé actif
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label">
+                        Notes
+                    </label>
+                    {{ form.notes }}
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'personnel:employee_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

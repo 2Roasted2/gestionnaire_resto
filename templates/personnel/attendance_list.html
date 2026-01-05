@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Présences{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-calendar-check"></i> Gestion des présences
+            </h1>
+            <p class="text-muted">Mois : {{ current_month }}/{{ current_year }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'personnel:attendance_bulk_create' %}" class="btn btn-success me-2">
+                <i class="fas fa-users"></i> Créer en masse
+            </a>
+            <a href="{% url 'personnel:attendance_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle présence
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques du mois -->
+    <div class="row g-3 mb-4">
+        {% for stat in stats %}
+        <div class="col-md-3">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ stat.count }}</h3>
+                    <p class="text-muted mb-0">{{ stat.status }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Filtres par mois/année -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Mois</label>
+                    <select name="month" class="form-control">
+                        {% for m in "123456789" %}
+                            <option value="{{ m }}" {% if m|add:"0" == current_month %}selected{% endif %}>
+                                {{ m }}
+                            </option>
+                        {% endfor %}
+                        {% for m in "101112" %}
+                            <option value="{{ m }}" {% if m|add:"0" == current_month %}selected{% endif %}>
+                                {{ m }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Année</label>
+                    <input type="number" name="year" value="{{ current_year }}" class="form-control" min="2020" max="2030">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des présences -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Employé</th>
+                            <th>Statut</th>
+                            <th>Arrivée</th>
+                            <th>Départ</th>
+                            <th>Heures travaillées</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in attendances %}
+                        <tr>
+                            <td><strong>{{ attendance.date|date:"d/m/Y" }}</strong></td>
+                            <td>
+                                <a href="{% url 'personnel:employee_detail' attendance.employee.pk %}">
+                                    {{ attendance.employee.user.get_full_name }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if attendance.status == 'PRESENT' %}success{% elif attendance.status == 'ABSENT' %}danger{% elif attendance.status == 'LATE' %}warning{% elif attendance.status == 'LEAVE' %}info{% elif attendance.status == 'SICK' %}secondary{% else %}primary{% endif %}">
+                                    {{ attendance.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ attendance.check_in|default:"-" }}</td>
+                            <td>{{ attendance.check_out|default:"-" }}</td>
+                            <td>
+                                {% if attendance.hours_worked %}
+                                    <strong>{{ attendance.hours_worked }}h</strong>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attendance.notes %}
+                                    <small>{{ attendance.notes|truncatewords:5 }}</small>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'personnel:attendance_update' attendance.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'personnel:attendance_delete' attendance.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                Aucune présence enregistrée pour ce mois
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

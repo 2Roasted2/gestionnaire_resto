@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Traiter la demande de congé{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Traiter la demande de congé
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Informations de la demande -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5>Détails de la demande</h5>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Employé :</strong> {{ leave.employee.user.get_full_name }}</p>
+                                    <p><strong>Type :</strong> {{ leave.get_leave_type_display }}</p>
+                                    <p><strong>Période :</strong> 
+                                        {{ leave.start_date|date:"d/m/Y" }} au {{ leave.end_date|date:"d/m/Y" }}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Nombre de jours :</strong> {{ leave.days_count }}</p>
+                                    <p><strong>Date de demande :</strong> {{ leave.created_at|date:"d/m/Y H:i" }}</p>
+                                    <p><strong>Statut actuel :</strong> 
+                                        <span class="badge bg-warning">{{ leave.get_status_display }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <p><strong>Motif :</strong></p>
+                            <p class="mb-0">{{ leave.reason }}</p>
+                            
+                            {% if leave.document %}
+                            <hr>
+                            <a href="{{ leave.document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download"></i> Télécharger le justificatif
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'approbation -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                Décision *
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger small">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.rejection_reason.id_for_label }}" class="form-label">
+                                Raison du refus (si refusé)
+                            </label>
+                            {{ form.rejection_reason }}
+                            <small class="text-muted">Obligatoire si vous refusez la demande</small>
+                            {% if form.rejection_reason.errors %}
+                                <div class="text-danger small">{{ form.rejection_reason.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'personnel:leave_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Valider la décision
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

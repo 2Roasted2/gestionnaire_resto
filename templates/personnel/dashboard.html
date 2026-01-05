@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}Personnel - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-users"></i> Gestion du Personnel
+            </h1>
+            <p class="lead text-muted">Tableau de bord du module Personnel</p>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Employés actifs</h6>
+                            <h2 class="mb-0">{{ total_employees }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Départements</h6>
+                            <h2 class="mb-0">{{ total_departments }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-building"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Congés en attente</h6>
+                            <h2 class="mb-0">{{ pending_leaves }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Contrats expirants</h6>
+                            <h2 class="mb-0">{{ expiring_contracts }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu rapide -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <a href="{% url 'personnel:employee_create' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-user-plus"></i> Nouvel employé
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'personnel:attendance_create' %}" class="btn btn-success w-100">
+                                <i class="fas fa-check-circle"></i> Enregistrer présence
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'personnel:leave_create' %}" class="btn btn-warning w-100">
+                                <i class="fas fa-calendar-plus"></i> Demande de congé
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'personnel:payroll_generate_monthly' %}" class="btn btn-info w-100">
+                                <i class="fas fa-money-bill-wave"></i> Générer paies
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Employés récents -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-friends"></i> Derniers employés ajoutés</h5>
+                    <a href="{% url 'personnel:employee_list' %}" class="btn btn-sm btn-outline-primary">
+                        Voir tout
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for employee in recent_employees %}
+                        <a href="{% url 'personnel:employee_detail' employee.pk %}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ employee.user.get_full_name }}</h6>
+                                    <small class="text-muted">
+                                        {{ employee.employee_id }} - {{ employee.department.name }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-primary">{{ employee.user.get_role_display }}</span>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucun employé récent</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques par département -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Employés par département</h5>
+                    <a href="{% url 'personnel:department_list' %}" class="btn btn-sm btn-outline-success">
+                        Gérer départements
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% for dept in employees_by_dept %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{ dept.name }}</span>
+                            <strong>{{ dept.employee_count }}</strong>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {% widthratio dept.employee_count total_employees 100 %}%">
+                                {% widthratio dept.employee_count total_employees 100 %}%
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liens vers les autres sections -->
+    <div class="row g-3 mt-3">
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-list fa-3x text-primary mb-3"></i>
+                    <h5>Liste des employés</h5>
+                    <p class="text-muted">Gérer tous les employés</p>
+                    <a href="{% url 'personnel:employee_list' %}" class="btn btn-primary">Accéder</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+                    <h5>Présences</h5>
+                    <p class="text-muted">Gérer les présences quotidiennes</p>
+                    <a href="{% url 'personnel:attendance_list' %}" class="btn btn-success">Accéder</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-umbrella-beach fa-3x text-warning mb-3"></i>
+                    <h5>Congés</h5>
+                    <p class="text-muted">Gérer les demandes de congés</p>
+                    <a href="{% url 'personnel:leave_list' %}" class="btn btn-warning">Accéder</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-contract fa-3x text-info mb-3"></i>
+                    <h5>Contrats</h5>
+                    <p class="text-muted">Gérer les contrats de travail</p>
+                    <a href="{% url 'personnel:contract_list' %}" class="btn btn-info">Accéder</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-money-check-alt fa-3x text-success mb-3"></i>
+                    <h5>Fiches de paie</h5>
+                    <p class="text-muted">Gérer les salaires</p>
+                    <a href="{% url 'personnel:payroll_list' %}" class="btn btn-success">Accéder</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x text-danger mb-3"></i>
+                    <h5>Rapports</h5>
+                    <p class="text-muted">Statistiques et analyses</p>
+                    <a href="{% url 'personnel:reports' %}" class="btn btn-danger">Accéder</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

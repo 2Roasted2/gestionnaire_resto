@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Fiches de paie{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-money-check-alt"></i> Gestion des fiches de paie
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'personnel:payroll_generate_monthly' %}" class="btn btn-success me-2">
+                <i class="fas fa-cogs"></i> Générer mois complet
+            </a>
+            <a href="{% url 'personnel:payroll_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle fiche
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Mois</label>
+                    <select name="month" class="form-control">
+                        <option value="">Tous</option>
+                        {% for m in "123456789" %}
+                            <option value="{{ m }}">{{ m }}</option>
+                        {% endfor %}
+                        {% for m in "101112" %}
+                            <option value="{{ m }}">{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Année</label>
+                    <input type="number" name="year" class="form-control" placeholder="2024" min="2020" max="2030">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des fiches de paie -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Employé</th>
+                            <th>Période</th>
+                            <th>Salaire brut</th>
+                            <th>Déductions</th>
+                            <th>Salaire net</th>
+                            <th>Statut</th>
+                            <th>Date de paiement</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payroll in payrolls %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'personnel:employee_detail' payroll.employee.pk %}">
+                                    {{ payroll.employee.user.get_full_name }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ payroll.employee.employee_id }}</small>
+                            </td>
+                            <td><strong>{{ payroll.month }}/{{ payroll.year }}</strong></td>
+                            <td><strong class="text-success">{{ payroll.gross_salary|floatformat:2 }} €</strong></td>
+                            <td>
+                                <span class="text-danger">
+                                    {{ payroll.social_security|floatformat:2 }}
+                                    + {{ payroll.tax|floatformat:2 }} €
+                                </span>
+                            </td>
+                            <td><strong class="text-primary">{{ payroll.net_salary|floatformat:2 }} €</strong></td>
+                            <td>
+                                {% if payroll.is_paid %}
+                                    <span class="badge bg-success">Payé</span>
+                                {% else %}
+                                    <span class="badge bg-warning">En attente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payroll.payment_date %}
+                                    {{ payroll.payment_date|date:"d/m/Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'personnel:payroll_detail' payroll.pk %}" 
+                                   class="btn btn-sm btn-info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'personnel:payroll_update' payroll.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'personnel:payroll_delete' payroll.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                Aucune fiche de paie trouvée
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

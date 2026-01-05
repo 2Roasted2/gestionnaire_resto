@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des employés{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-users"></i> Liste des employés
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'personnel:employee_create' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Nouvel employé
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-3">
+                    {{ search_form.department }}
+                </div>
+                <div class="col-md-3">
+                    {{ search_form.is_active }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des employés -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Matricule</th>
+                            <th>Nom complet</th>
+                            <th>Département</th>
+                            <th>Rôle</th>
+                            <th>Date d'embauche</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in employees %}
+                        <tr>
+                            <td>
+                                {% if employee.user.photo %}
+                                    <img src="{{ employee.user.photo.url }}" 
+                                         alt="{{ employee.user.get_full_name }}"
+                                         class="rounded-circle"
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ employee.employee_id }}</strong></td>
+                            <td>{{ employee.user.get_full_name }}</td>
+                            <td>
+                                {% if employee.department %}
+                                    <span class="badge bg-info">{{ employee.department.name }}</span>
+                                {% else %}
+                                    <span class="text-muted">Non assigné</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ employee.user.get_role_display }}</span>
+                            </td>
+                            <td>{{ employee.hire_date|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if employee.is_active %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'personnel:employee_detail' employee.pk %}" 
+                                   class="btn btn-sm btn-info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'personnel:employee_update' employee.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'personnel:employee_delete' employee.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                Aucun employé trouvé
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

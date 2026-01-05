@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des congés{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-umbrella-beach"></i> Gestion des congés
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'personnel:leave_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle demande
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <select name="status" class="form-control">
+                        <option value="">Tous les statuts</option>
+                        <option value="PENDING">En attente</option>
+                        <option value="APPROVED">Approuvé</option>
+                        <option value="REJECTED">Refusé</option>
+                        <option value="CANCELLED">Annulé</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des congés -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Employé</th>
+                            <th>Type</th>
+                            <th>Période</th>
+                            <th>Jours</th>
+                            <th>Statut</th>
+                            <th>Approuvé par</th>
+                            <th>Date de demande</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in leaves %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'personnel:employee_detail' leave.employee.pk %}">
+                                    {{ leave.employee.user.get_full_name }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ leave.employee.employee_id }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ leave.get_leave_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ leave.start_date|date:"d/m/Y" }}</strong>
+                                <br>
+                                <small class="text-muted">au {{ leave.end_date|date:"d/m/Y" }}</small>
+                            </td>
+                            <td><strong>{{ leave.days_count }}</strong> jour(s)</td>
+                            <td>
+                                <span class="badge bg-{% if leave.status == 'APPROVED' %}success{% elif leave.status == 'REJECTED' %}danger{% elif leave.status == 'CANCELLED' %}secondary{% else %}warning{% endif %}">
+                                    {{ leave.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if leave.approved_by %}
+                                    {{ leave.approved_by.get_full_name }}
+                                    <br>
+                                    <small class="text-muted">{{ leave.approved_at|date:"d/m/Y" }}</small>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ leave.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if leave.status == 'PENDING' %}
+                                    <a href="{% url 'personnel:leave_approve' leave.pk %}" 
+                                       class="btn btn-sm btn-success" title="Traiter">
+                                        <i class="fas fa-check-circle"></i>
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'personnel:leave_update' leave.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'personnel:leave_delete' leave.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                Aucune demande de congé trouvée
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

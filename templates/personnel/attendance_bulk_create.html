@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer présences en masse{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-users"></i> Créer des présences en masse
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Cette action créera une présence pour <strong>tous les employés actifs</strong> à la date spécifiée.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="date" class="form-label">
+                                Date *
+                            </label>
+                            <input type="date" 
+                                   name="date" 
+                                   id="date" 
+                                   class="form-control" 
+                                   value="{{ today|date:'Y-m-d' }}" 
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">
+                                Statut par défaut *
+                            </label>
+                            <select name="status" id="status" class="form-control" required>
+                                <option value="PRESENT">Présent</option>
+                                <option value="ABSENT">Absent</option>
+                                <option value="LATE">Retard</option>
+                                <option value="LEAVE">Congé</option>
+                                <option value="SICK">Maladie</option>
+                                <option value="REMOTE">Télétravail</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Les présences déjà existantes pour cette date ne seront pas dupliquées.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'personnel:attendance_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Créer les présences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

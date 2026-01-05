@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer contrat{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Êtes-vous sûr de vouloir supprimer ce contrat ?
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Employé :</strong> {{ contract.employee.user.get_full_name }}<br>
+                        <strong>Type :</strong> {{ contract.get_contract_type_display }}<br>
+                        <strong>Période :</strong> 
+                        {{ contract.start_date|date:"d/m/Y" }} - 
+                        {% if contract.end_date %}
+                            {{ contract.end_date|date:"d/m/Y" }}
+                        {% else %}
+                            En cours
+                        {% endif %}
+                        <br>
+                        <strong>Salaire :</strong> {{ contract.base_salary }} €/mois
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'personnel:employee_detail' employee.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

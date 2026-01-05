@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Générer les fiches de paie du mois{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cogs"></i> Génération automatique des fiches de paie
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Cette action va générer automatiquement les fiches de paie pour tous les employés actifs du mois sélectionné.
+                    </p>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Comment ça fonctionne ?</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Récupère tous les employés actifs</li>
+                            <li>Calcule les salaires basés sur les contrats</li>
+                            <li>Prend en compte les présences et absences</li>
+                            <li>Calcule les cotisations sociales (22% du brut)</li>
+                            <li>Ignore les employés qui ont déjà une fiche pour ce mois</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="month" class="form-label">
+                                    Mois *
+                                </label>
+                                <select name="month" id="month" class="form-control" required>
+                                    <option value="1" {% if current_month == 1 %}selected{% endif %}>Janvier</option>
+                                    <option value="2" {% if current_month == 2 %}selected{% endif %}>Février</option>
+                                    <option value="3" {% if current_month == 3 %}selected{% endif %}>Mars</option>
+                                    <option value="4" {% if current_month == 4 %}selected{% endif %}>Avril</option>
+                                    <option value="5" {% if current_month == 5 %}selected{% endif %}>Mai</option>
+                                    <option value="6" {% if current_month == 6 %}selected{% endif %}>Juin</option>
+                                    <option value="7" {% if current_month == 7 %}selected{% endif %}>Juillet</option>
+                                    <option value="8" {% if current_month == 8 %}selected{% endif %}>Août</option>
+                                    <option value="9" {% if current_month == 9 %}selected{% endif %}>Septembre</option>
+                                    <option value="10" {% if current_month == 10 %}selected{% endif %}>Octobre</option>
+                                    <option value="11" {% if current_month == 11 %}selected{% endif %}>Novembre</option>
+                                    <option value="12" {% if current_month == 12 %}selected{% endif %}>Décembre</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="year" class="form-label">
+                                    Année *
+                                </label>
+                                <input type="number" 
+                                       name="year" 
+                                       id="year" 
+                                       class="form-control" 
+                                       value="{{ current_year }}" 
+                                       min="2020" 
+                                       max="2030"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Attention :</strong> Cette opération peut prendre quelques secondes selon le nombre d'employés.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'personnel:payroll_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-cogs"></i> Générer les fiches de paie
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

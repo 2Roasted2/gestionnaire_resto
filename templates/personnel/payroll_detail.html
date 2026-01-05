@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Fiche de paie - {{ payroll.employee.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-file-invoice-dollar"></i> Fiche de paie
+            </h1>
+            <p class="lead text-muted">{{ payroll.month }}/{{ payroll.year }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'personnel:payroll_update' payroll.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'personnel:payroll_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <!-- En-tête -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Informations Employé</h5>
+                    <p class="mb-1"><strong>Nom :</strong> {{ payroll.employee.user.get_full_name }}</p>
+                    <p class="mb-1"><strong>Matricule :</strong> {{ payroll.employee.employee_id }}</p>
+                    <p class="mb-1"><strong>Département :</strong> {{ payroll.employee.department.name }}</p>
+                    <p class="mb-1"><strong>Poste :</strong> {{ payroll.employee.user.get_role_display }}</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h5>Période</h5>
+                    <h2>{{ payroll.month }}/{{ payroll.year }}</h2>
+                    {% if payroll.is_paid %}
+                        <span class="badge bg-success fs-6">Payé le {{ payroll.payment_date|date:"d/m/Y" }}</span>
+                    {% else %}
+                        <span class="badge bg-warning fs-6">En attente de paiement</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Détails du salaire -->
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Éléments de rémunération</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Salaire de base</td>
+                            <td class="text-end"><strong>{{ payroll.base_salary|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Heures supplémentaires ({{ payroll.overtime_hours }}h)</td>
+                            <td class="text-end"><strong>{{ payroll.overtime_amount|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Primes</td>
+                            <td class="text-end"><strong>{{ payroll.bonuses|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Indemnités</td>
+                            <td class="text-end"><strong>{{ payroll.allowances|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td>Déduction absences</td>
+                            <td class="text-end"><strong>- {{ payroll.absences_deduction|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr class="table-success">
+                            <td><strong>SALAIRE BRUT</strong></td>
+                            <td class="text-end"><strong>{{ payroll.gross_salary|floatformat:2 }} €</strong></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="mb-3">Déductions</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Cotisations sociales</td>
+                            <td class="text-end text-danger"><strong>- {{ payroll.social_security|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Impôts</td>
+                            <td class="text-end text-danger"><strong>- {{ payroll.tax|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Autres déductions</td>
+                            <td class="text-end text-danger"><strong>- {{ payroll.other_deductions|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td><strong>SALAIRE NET</strong></td>
+                            <td class="text-end"><h4 class="mb-0">{{ payroll.net_salary|floatformat:2 }} €</h4></td>
+                        </tr>
+                    </table>
+
+                    <div class="alert alert-info mt-3">
+                        <strong>Mode de paiement :</strong> {{ payroll.payment_method }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            {% if payroll.notes %}
+            <hr>
+            <h5>Notes</h5>
+            <p>{{ payroll.notes|linebreaks }}</p>
+            {% endif %}
+
+            <!-- Actions -->
+            <hr>
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'personnel:payroll_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+                <div>
+                    <button class="btn btn-primary" onclick="window.print()">
+                        <i class="fas fa-print"></i> Imprimer
+                    </button>
+                    <a href="{% url 'personnel:payroll_update' payroll.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

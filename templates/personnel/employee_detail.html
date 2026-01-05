@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-user"></i> {{ employee.user.get_full_name }}
+            </h1>
+            <p class="lead text-muted">{{ employee.employee_id }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'personnel:employee_update' employee.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'personnel:employee_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Colonne gauche : Informations personnelles -->
+        <div class="col-md-4">
+            <!-- Carte profil -->
+            <div class="card shadow mb-3">
+                <div class="card-body text-center">
+                    {% if employee.user.photo %}
+                        <img src="{{ employee.user.photo.url }}" 
+                             alt="{{ employee.user.get_full_name }}"
+                             class="rounded-circle mb-3"
+                             style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 150px; height: 150px;">
+                            <i class="fas fa-user fa-4x text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h4>{{ employee.user.get_full_name }}</h4>
+                    <p class="text-muted mb-2">{{ employee.user.get_role_display }}</p>
+                    <span class="badge bg-{% if employee.is_active %}success{% else %}danger{% endif %} mb-3">
+                        {% if employee.is_active %}Actif{% else %}Inactif{% endif %}
+                    </span>
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <p class="mb-1"><strong>Matricule:</strong> {{ employee.employee_id }}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{ employee.user.email }}</p>
+                        <p class="mb-1"><strong>Téléphone:</strong> {{ employee.user.phone|default:"Non renseigné" }}</p>
+                        <p class="mb-1"><strong>Département:</strong> 
+                            {% if employee.department %}
+                                {{ employee.department.name }}
+                            {% else %}
+                                Non assigné
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations personnelles -->
+            <div class="card shadow mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations personnelles</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Genre:</strong> {{ employee.get_gender_display }}</p>
+                    <p class="mb-2"><strong>Date de naissance:</strong> 
+                        {{ employee.user.date_of_birth|date:"d/m/Y"|default:"Non renseigné" }}
+                    </p>
+                    <p class="mb-2"><strong>Situation matrimoniale:</strong> {{ employee.get_marital_status_display }}</p>
+                    <p class="mb-2"><strong>Nationalité:</strong> {{ employee.nationality }}</p>
+                    <p class="mb-2"><strong>N° Carte d'identité:</strong> {{ employee.id_card_number|default:"Non renseigné" }}</p>
+                    <p class="mb-2"><strong>Adresse:</strong> {{ employee.user.address|default:"Non renseignée" }}</p>
+                </div>
+            </div>
+
+            <!-- Contact d'urgence -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-phone-alt"></i> Contact d'urgence</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Nom:</strong> {{ employee.emergency_contact_name|default:"Non renseigné" }}</p>
+                    <p class="mb-2"><strong>Téléphone:</strong> {{ employee.emergency_contact_phone|default:"Non renseigné" }}</p>
+                    <p class="mb-2"><strong>Relation:</strong> {{ employee.emergency_contact_relation|default:"Non renseignée" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne droite : Données professionnelles -->
+        <div class="col-md-8">
+            <!-- Statistiques rapides -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h6>Ancienneté</h6>
+                            <h3>{{ employee.get_years_of_service }} ans</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h6>Contrats</h6>
+                            <h3>{{ contracts.count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h6>Congés (mois)</h6>
+                            <h3>{{ leaves.count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contrat actuel -->
+            <div class="card shadow mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-contract"></i> Contrat actuel</h5>
+                    <a href="{% url 'personnel:contract_create' employee.pk %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Nouveau contrat
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if current_contract %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Type:</strong> {{ current_contract.get_contract_type_display }}</p>
+                                <p><strong>Début:</strong> {{ current_contract.start_date|date:"d/m/Y" }}</p>
+                                <p><strong>Fin:</strong> 
+                                    {% if current_contract.end_date %}
+                                        {{ current_contract.end_date|date:"d/m/Y" }}
+                                    {% else %}
+                                        Indéterminée
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Salaire de base:</strong> {{ current_contract.base_salary }} €/mois</p>
+                                <p><strong>Heures hebdo:</strong> {{ current_contract.weekly_hours }}h</p>
+                                <p><strong>Prime repas:</strong> {{ current_contract.meal_allowance }} €/jour</p>
+                            </div>
+                        </div>
+                        <a href="{% url 'personnel:contract_update' current_contract.pk %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                    {% else %}
+                        <p class="text-muted mb-0">Aucun contrat actif</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Historique des contrats -->
+            <div class="card shadow mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Historique des contrats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Période</th>
+                                    <th>Salaire</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contract in contracts %}
+                                <tr>
+                                    <td>{{ contract.get_contract_type_display }}</td>
+                                    <td>
+                                        {{ contract.start_date|date:"d/m/Y" }} - 
+                                        {% if contract.end_date %}
+                                            {{ contract.end_date|date:"d/m/Y" }}
+                                        {% else %}
+                                            En cours
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ contract.base_salary }} €</td>
+                                    <td>
+                                        {% if contract.is_active %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'personnel:contract_update' contract.pk %}" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Aucun contrat</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Présences du mois -->
+            <div class="card shadow mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Présences ce mois</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Statistiques -->
+                    <div class="row mb-3">
+                        {% for stat in attendance_stats %}
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="mb-0">{{ stat.count }}</h4>
+                                <small class="text-muted">{{ stat.status }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Statut</th>
+                                    <th>Arrivée</th>
+                                    <th>Départ</th>
+                                    <th>Heures</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance in attendances|slice:":10" %}
+                                <tr>
+                                    <td>{{ attendance.date|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if attendance.status == 'PRESENT' %}success{% elif attendance.status == 'ABSENT' %}danger{% else %}warning{% endif %}">
+                                            {{ attendance.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ attendance.check_in|default:"-" }}</td>
+                                    <td>{{ attendance.check_out|default:"-" }}</td>
+                                    <td>{{ attendance.hours_worked|default:"-" }}h</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Aucune présence ce mois</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Congés récents -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-umbrella-beach"></i> Derniers congés</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Période</th>
+                                    <th>Jours</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in leaves|slice:":5" %}
+                                <tr>
+                                    <td>{{ leave.get_leave_type_display }}</td>
+                                    <td>
+                                        {{ leave.start_date|date:"d/m/Y" }} - 
+                                        {{ leave.end_date|date:"d/m/Y" }}
+                                    </td>
+                                    <td>{{ leave.days_count }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if leave.status == 'APPROVED' %}success{% elif leave.status == 'REJECTED' %}danger{% else %}warning{% endif %}">
+                                            {{ leave.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Aucun congé</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes -->
+    {% if employee.notes %}
+    <div class="row mt-3">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notes</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ employee.notes|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
