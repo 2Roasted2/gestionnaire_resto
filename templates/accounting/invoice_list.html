@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Factures{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-file-invoice"></i> Factures clients
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'accounting:invoice_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle facture
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-3">
+                    {{ search_form.status }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Résumé financier -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6>Total facturé</h6>
+                    <h2>{{ totals.total_amount|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6>Total payé</h6>
+                    <h2>{{ totals.paid_amount|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h6>Reste à payer</h6>
+                    <h2>{{ totals.remaining|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des factures -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>N° Facture</th>
+                            <th>Client</th>
+                            <th>Date émission</th>
+                            <th>Date échéance</th>
+                            <th>Montant total</th>
+                            <th>Montant payé</th>
+                            <th>Reste</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td><strong>{{ invoice.invoice_number }}</strong></td>
+                            <td>
+                                {{ invoice.customer_name }}
+                                {% if invoice.customer_email %}
+                                    <br><small class="text-muted">{{ invoice.customer_email }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ invoice.issue_date|date:"d/m/Y" }}</td>
+                            <td>
+                                {{ invoice.due_date|date:"d/m/Y" }}
+                                {% if invoice.is_overdue %}
+                                    <br><span class="badge bg-danger">En retard</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ invoice.total_amount|floatformat:2 }} €</strong></td>
+                            <td>{{ invoice.paid_amount|floatformat:2 }} €</td>
+                            <td>
+                                <strong class="text-{% if invoice.remaining_balance == 0 %}success{% else %}warning{% endif %}">
+                                    {{ invoice.remaining_balance|floatformat:2 }} €
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'OVERDUE' %}danger{% elif invoice.status == 'PARTIALLY_PAID' %}warning{% elif invoice.status == 'SENT' %}info{% else %}secondary{% endif %}">
+                                    {{ invoice.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'accounting:invoice_detail' invoice.pk %}" 
+                                   class="btn btn-sm btn-info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'accounting:invoice_update' invoice.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'accounting:invoice_delete' invoice.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">
+                                Aucune facture trouvée
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

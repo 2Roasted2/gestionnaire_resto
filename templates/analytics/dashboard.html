@@ -1,0 +1,447 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord exécutif{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-chart-line"></i> Tableau de bord exécutif
+            </h1>
+            <p class="lead text-muted">Vue d'ensemble globale du restaurant</p>
+        </div>
+    </div>
+
+    <!-- KPIs Financiers -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-euro-sign"></i> Finances
+            </h4>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Revenus du mois</h6>
+                    <h2 class="mb-0">{{ monthly_revenue|floatformat:0 }} €</h2>
+                    <small>Année: {{ yearly_revenue|floatformat:0 }} €</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-danger h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Dépenses du mois</h6>
+                    <h2 class="mb-0">{{ monthly_expenses|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-{% if monthly_balance >= 0 %}primary{% else %}warning{% endif %} h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Balance du mois</h6>
+                    <h2 class="mb-0">{{ monthly_balance|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Factures impayées</h6>
+                    <h2 class="mb-0">{{ unpaid_invoices|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs RH -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-users"></i> Ressources Humaines
+            </h4>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Employés actifs</h6>
+                    <h2 class="mb-0">{{ active_employees }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Présents aujourd'hui</h6>
+                    <h2 class="mb-0">{{ today_attendance }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Congés en cours</h6>
+                    <h2 class="mb-0">{{ active_leaves }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Masse salariale/mois</h6>
+                    <h2 class="mb-0">{{ monthly_payroll|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs Stock -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-boxes"></i> Stock & Inventaire
+            </h4>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Valeur du stock</h6>
+                    <h2 class="mb-0">{{ stock_value|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-danger h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Produits en alerte</h6>
+                    <h2 class="mb-0">{{ products_low_stock }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Mouvements du mois</h6>
+                    <h2 class="mb-0">{{ monthly_stock_movements }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs Réservations & Commandes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-calendar-check"></i> Activité Restaurant
+            </h4>
+        </div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Réservations mois</h6>
+                    <h2 class="mb-0">{{ monthly_reservations }}</h2>
+                    <small>Aujourd'hui: {{ today_reservations }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Taux confirmation</h6>
+                    <h2 class="mb-0">{{ confirmation_rate|floatformat:1 }}%</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Commandes du mois</h6>
+                    <h2 class="mb-0">{{ monthly_orders }}</h2>
+                    <small>Aujourd'hui: {{ today_orders }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase mb-0">Panier moyen</h6>
+                    <h2 class="mb-0">{{ avg_order_value|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques et analyses -->
+    <div class="row g-3 mb-4">
+        <!-- Évolution mensuelle -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution financière (6 mois)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="financialChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top plats -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 5 - Plats du mois</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in top_items %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ forloop.counter }}. {{ item.menu_item__name }}</strong></span>
+                            <span class="badge bg-success">{{ item.total_quantity }} vendus</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio item.total_quantity top_items.0.total_quantity 100 %}%">
+                                {{ item.total_revenue|floatformat:0 }} €
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Activité mensuelle -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-area"></i> Activité globale (6 mois)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liens rapides vers rapports détaillés -->
+    <div class="row g-3">
+        <div class="col-12">
+            <h4 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-file-alt"></i> Rapports détaillés
+            </h4>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-euro-sign fa-3x text-success mb-3"></i>
+                    <h5>Rapports Financiers</h5>
+                    <p class="text-muted">Analyse détaillée des finances</p>
+                    <a href="{% url 'analytics:financial_reports' %}" class="btn btn-success">
+                        <i class="fas fa-chart-bar"></i> Consulter
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-info mb-3"></i>
+                    <h5>Rapports RH</h5>
+                    <p class="text-muted">Statistiques du personnel</p>
+                    <a href="{% url 'analytics:hr_reports' %}" class="btn btn-info">
+                        <i class="fas fa-chart-bar"></i> Consulter
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-3x text-primary mb-3"></i>
+                    <h5>Rapports Stock</h5>
+                    <p class="text-muted">Analyse de l'inventaire</p>
+                    <a href="{% url 'analytics:inventory_reports' %}" class="btn btn-primary">
+                        <i class="fas fa-chart-bar"></i> Consulter
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-3x text-warning mb-3"></i>
+                    <h5>Rapports Réservations</h5>
+                    <p class="text-muted">Statistiques de réservations</p>
+                    <a href="{% url 'analytics:reservations_reports' %}" class="btn btn-warning">
+                        <i class="fas fa-chart-bar"></i> Consulter
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart fa-3x text-danger mb-3"></i>
+                    <h5>Rapports Ventes</h5>
+                    <p class="text-muted">Analyse des commandes</p>
+                    <a href="{% url 'analytics:sales_reports' %}" class="btn btn-danger">
+                        <i class="fas fa-chart-bar"></i> Consulter
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-export fa-3x text-secondary mb-3"></i>
+                    <h5>Export de données</h5>
+                    <p class="text-muted">Exporter vers Excel/PDF</p>
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-download"></i> Bientôt disponible
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Graphique évolution financière
+const financialCtx = document.getElementById('financialChart').getContext('2d');
+const financialChart = new Chart(financialCtx, {
+    type: 'line',
+    data: {
+        labels: {{ months_data|safe|json_script:"months-labels" }}.map(m => m.month),
+        datasets: [
+            {
+                label: 'Revenus',
+                data: {{ months_data|safe|json_script:"months-revenue" }}.map(m => m.revenue),
+                borderColor: 'rgb(40, 167, 69)',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'Dépenses',
+                data: {{ months_data|safe|json_script:"months-expenses" }}.map(m => m.expenses),
+                borderColor: 'rgb(220, 53, 69)',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value + ' €';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Graphique activité globale
+const activityCtx = document.getElementById('activityChart').getContext('2d');
+const activityChart = new Chart(activityCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ months_data|safe|json_script:"months-labels2" }}.map(m => m.month),
+        datasets: [
+            {
+                label: 'Commandes',
+                data: {{ months_data|safe|json_script:"months-orders" }}.map(m => m.orders),
+                backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                yAxisID: 'y'
+            },
+            {
+                label: 'Réservations',
+                data: {{ months_data|safe|json_script:"months-reservations" }}.map(m => m.reservations),
+                backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                yAxisID: 'y'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                position: 'left'
+            }
+        }
+    }
+});
+
+// Parse JSON data
+document.addEventListener('DOMContentLoaded', function() {
+    const monthsData = {{ months_data|safe }};
+    
+    // Update financial chart
+    financialChart.data.labels = monthsData.map(m => m.month);
+    financialChart.data.datasets[0].data = monthsData.map(m => m.revenue);
+    financialChart.data.datasets[1].data = monthsData.map(m => m.expenses);
+    financialChart.update();
+    
+    // Update activity chart
+    activityChart.data.labels = monthsData.map(m => m.month);
+    activityChart.data.datasets[0].data = monthsData.map(m => m.orders);
+    activityChart.data.datasets[1].data = monthsData.map(m => m.reservations);
+    activityChart.update();
+});
+</script>
+
+<style>
+.hover-shadow {
+    transition: all 0.3s;
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
+}
+</style>
+{% endblock %}

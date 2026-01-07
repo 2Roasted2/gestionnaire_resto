@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} réservation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card shadow">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-calendar-check"></i> {{ action }} une réservation
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-user"></i> Informations client
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.customer_name.id_for_label }}" class="form-label">
+                            Nom du client *
+                        </label>
+                        {{ form.customer_name }}
+                        {% if form.customer_name.errors %}
+                            <div class="text-danger small">{{ form.customer_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.customer_phone.id_for_label }}" class="form-label">
+                            Téléphone *
+                        </label>
+                        {{ form.customer_phone }}
+                        {% if form.customer_phone.errors %}
+                            <div class="text-danger small">{{ form.customer_phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.customer_email.id_for_label }}" class="form-label">
+                        Email
+                    </label>
+                    {{ form.customer_email }}
+                </div>
+
+                <h5 class="border-bottom pb-2 mb-3 mt-4">
+                    <i class="fas fa-calendar"></i> Détails de la réservation
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.reservation_number.id_for_label }}" class="form-label">
+                            N° de réservation *
+                        </label>
+                        {{ form.reservation_number }}
+                        {% if form.reservation_number.errors %}
+                            <div class="text-danger small">{{ form.reservation_number.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                            Statut *
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger small">{{ form.status.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.reservation_date.id_for_label }}" class="form-label">
+                            Date *
+                        </label>
+                        {{ form.reservation_date }}
+                        {% if form.reservation_date.errors %}
+                            <div class="text-danger small">{{ form.reservation_date.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.time_slot.id_for_label }}" class="form-label">
+                            Créneau horaire *
+                        </label>
+                        {{ form.time_slot }}
+                        {% if form.time_slot.errors %}
+                            <div class="text-danger small">{{ form.time_slot.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.number_of_guests.id_for_label }}" class="form-label">
+                            Nombre de personnes *
+                        </label>
+                        {{ form.number_of_guests }}
+                        {% if form.number_of_guests.errors %}
+                            <div class="text-danger small">{{ form.number_of_guests.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.table.id_for_label }}" class="form-label">
+                        Table assignée
+                    </label>
+                    {{ form.table }}
+                    <small class="text-muted">Optionnel - peut être assignée plus tard</small>
+                </div>
+
+                <h5 class="border-bottom pb-2 mb-3 mt-4">
+                    <i class="fas fa-comment"></i> Informations supplémentaires
+                </h5>
+
+                <div class="mb-3">
+                    <label for="{{ form.special_requests.id_for_label }}" class="form-label">
+                        Demandes spéciales
+                    </label>
+                    {{ form.special_requests }}
+                    <small class="text-muted">Allergies, occasion spéciale, préférences...</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label">
+                        Notes internes
+                    </label>
+                    {{ form.notes }}
+                    <small class="text-muted">Visible uniquement par le personnel</small>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'bookings:reservation_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

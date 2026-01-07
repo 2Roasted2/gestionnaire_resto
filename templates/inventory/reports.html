@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports Stock{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-chart-bar"></i> Rapports et Statistiques
+            </h1>
+            <p class="lead text-muted">Vue d'ensemble du stock</p>
+        </div>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Total produits</h6>
+                    <h2 class="mb-0">{{ total_products }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Valeur totale</h6>
+                    <h2 class="mb-0">{{ total_stock_value|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Rupture</h6>
+                    <h2 class="mb-0">{{ out_of_stock }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Stock faible</h6>
+                    <h2 class="mb-0">{{ low_stock }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Répartition par catégorie -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Produits par catégorie</h5>
+                </div>
+                <div class="card-body">
+                    {% for cat in products_by_category %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ cat.name }}</strong></span>
+                            <span class="badge bg-primary">{{ cat.product_count }} produit(s)</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar" 
+                                 role="progressbar" 
+                                 style="width: {% if total_products > 0 %}{% widthratio cat.product_count total_products 100 %}{% else %}0{% endif %}%">
+                                {% if total_products > 0 %}
+                                    {% widthratio cat.product_count total_products 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Valeur du stock par catégorie -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-euro-sign"></i> Valeur du stock par catégorie</h5>
+                </div>
+                <div class="card-body">
+                    {% for cat in stock_value_by_category %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ cat.name }}</strong></span>
+                            <span class="badge bg-success">{{ cat.total_value|floatformat:0|default:"0" }} €</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" 
+                                 role="progressbar" 
+                                 style="width: {% if total_stock_value > 0 and cat.total_value %}{% widthratio cat.total_value total_stock_value 100 %}{% else %}0{% endif %}%">
+                                {% if total_stock_value > 0 and cat.total_value %}
+                                    {% widthratio cat.total_value total_stock_value 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 10 produits par valeur -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 10 - Valeur du stock</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Produit</th>
+                                    <th>Catégorie</th>
+                                    <th>Quantité en stock</th>
+                                    <th>Prix unitaire</th>
+                                    <th>Valeur totale</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in top_value_products %}
+                                <tr>
+                                    <td><strong>{{ forloop.counter }}</strong></td>
+                                    <td>
+                                        <a href="{% url 'inventory:product_detail' product.pk %}">
+                                            {{ product.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if product.category %}
+                                            <span class="badge bg-info">{{ product.category.name }}</span>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ product.quantity_in_stock }} {{ product.get_unit_display }}</td>
+                                    <td>{{ product.unit_price }} €</td>
+                                    <td><strong>{{ product.stock_value|floatformat:2 }} €</strong></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Aucun produit</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mouvements du mois -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-exchange-alt"></i> Mouvements du mois</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Entrées</h6>
+                            <h2 class="text-success">{{ movements_in|floatformat:0 }}</h2>
+                            <small class="text-muted">unités</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-muted">Sorties</h6>
+                            <h2 class="text-danger">{{ movements_out|floatformat:0 }}</h2>
+                            <small class="text-muted">unités</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statut des stocks -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-battery-three-quarters"></i> Répartition par statut de stock</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Rupture de stock</span>
+                            <span class="badge bg-danger">{{ out_of_stock }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Stock faible</span>
+                            <span class="badge bg-warning">{{ low_stock }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Stock optimal</span>
+                            <span class="badge bg-success">{{ optimal_stock }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions d'export -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-download"></i> Export des données</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Exportez les données du stock au format Excel ou PDF</p>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" disabled>
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger w-100" disabled>
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-info w-100" disabled>
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'inventory:dashboard' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle"></i> Fonctionnalités d'export à venir...
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

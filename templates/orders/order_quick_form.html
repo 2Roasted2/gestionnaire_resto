@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Nouvelle commande rapide{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-bolt"></i> Prise de commande rapide
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Commande rapide :</strong> Créez une nouvelle commande rapidement. 
+                        Vous pourrez ajouter les articles juste après.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.order_type.id_for_label }}" class="form-label">
+                                    <i class="fas fa-shopping-bag"></i> Type de commande *
+                                </label>
+                                {{ form.order_type }}
+                                {% if form.order_type.errors %}
+                                    <div class="text-danger small">{{ form.order_type.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.table.id_for_label }}" class="form-label">
+                                    <i class="fas fa-chair"></i> Table (si sur place)
+                                </label>
+                                {{ form.table }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.customer_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-user"></i> Nom du client (optionnel)
+                            </label>
+                            {{ form.customer_name }}
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'orders:dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-arrow-right"></i> Créer et ajouter des articles
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

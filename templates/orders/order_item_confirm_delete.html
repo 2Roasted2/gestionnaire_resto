@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer article{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Êtes-vous sûr de vouloir supprimer cet article ?
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Commande :</strong> {{ order.order_number }}<br>
+                        <strong>Article :</strong> {{ item.menu_item.name }}<br>
+                        <strong>Quantité :</strong> {{ item.quantity }}<br>
+                        <strong>Prix :</strong> {{ item.total_price|floatformat:2 }} €
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i>
+                        Les totaux de la commande seront recalculés automatiquement.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'orders:order_add_items' order.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

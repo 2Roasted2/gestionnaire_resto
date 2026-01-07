@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-box"></i> {{ product.name }}
+            </h1>
+            <p class="lead text-muted">{{ product.reference }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventory:product_update' product.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Colonne gauche : Informations du produit -->
+        <div class="col-md-4">
+            <!-- Image et infos principales -->
+            <div class="card shadow mb-3">
+                <div class="card-body text-center">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" 
+                             alt="{{ product.name }}"
+                             class="img-fluid rounded mb-3"
+                             style="max-height: 300px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary rounded d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 200px; height: 200px;">
+                            <i class="fas fa-box fa-5x text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h4>{{ product.name }}</h4>
+                    <p class="text-muted mb-2">{{ product.reference }}</p>
+                    <span class="badge bg-{% if product.stock_status == 'OUT_OF_STOCK' %}danger{% elif product.stock_status == 'LOW_STOCK' %}warning{% elif product.stock_status == 'NORMAL' %}info{% else %}success{% endif %} fs-6">
+                        {% if product.stock_status == 'OUT_OF_STOCK' %}
+                            Rupture de stock
+                        {% elif product.stock_status == 'LOW_STOCK' %}
+                            Stock faible
+                        {% elif product.stock_status == 'NORMAL' %}
+                            Stock normal
+                        {% else %}
+                            Stock optimal
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Informations détaillées -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Catégorie:</strong> 
+                        {% if product.category %}
+                            {{ product.category.name }}
+                        {% else %}
+                            Non classé
+                        {% endif %}
+                    </p>
+                    <p class="mb-2"><strong>Fournisseur:</strong> {{ product.supplier.name|default:"Non assigné" }}</p>
+                    <p class="mb-2"><strong>Unité:</strong> {{ product.get_unit_display }}</p>
+                    <p class="mb-2"><strong>Prix unitaire:</strong> {{ product.unit_price }} €</p>
+                    <p class="mb-2"><strong>Code-barres:</strong> {{ product.barcode|default:"-" }}</p>
+                    <p class="mb-2"><strong>Statut:</strong> 
+                        {% if product.is_active %}
+                            <span class="badge bg-success">Actif</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactif</span>
+                        {% endif %}
+                    </p>
+                    {% if product.description %}
+                    <hr>
+                    <p class="mb-0"><strong>Description:</strong><br>{{ product.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne droite : Stock et mouvements -->
+        <div class="col-md-8">
+            <!-- Statistiques de stock -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h6>Stock actuel</h6>
+                            <h2>{{ product.quantity_in_stock }}</h2>
+                            <small>{{ product.get_unit_display }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h6>Stock minimum</h6>
+                            <h2>{{ product.minimum_stock }}</h2>
+                            <small>{{ product.get_unit_display }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h6>Valeur du stock</h6>
+                            <h2>{{ product.stock_value|floatformat:0 }} €</h2>
+                            <small>{{ product.quantity_in_stock }} × {{ product.unit_price }} €</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques des mouvements -->
+            <div class="card shadow mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Statistiques des mouvements</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Total entrées</h6>
+                            <h3 class="text-success">{{ movements_in }} {{ product.get_unit_display }}</h3>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Total sorties</h6>
+                            <h3 class="text-danger">{{ movements_out }} {{ product.get_unit_display }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique des mouvements -->
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Historique des mouvements</h5>
+                    <a href="{% url 'inventory:stock_movement_create' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Nouveau mouvement
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Quantité</th>
+                                    <th>Prix</th>
+                                    <th>Motif</th>
+                                    <th>Par</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movement in movements %}
+                                <tr>
+                                    <td>{{ movement.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if movement.movement_type == 'IN' %}success{% elif movement.movement_type == 'OUT' %}danger{% else %}secondary{% endif %}">
+                                            {{ movement.get_movement_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if movement.movement_type == 'IN' or movement.movement_type == 'RETURN' %}
+                                            <span class="text-success">+{{ movement.quantity }}</span>
+                                        {% else %}
+                                            <span class="text-danger">-{{ movement.quantity }}</span>
+                                        {% endif %}
+                                        {{ product.get_unit_display }}
+                                    </td>
+                                    <td>{{ movement.unit_price }} €</td>
+                                    <td>{{ movement.reason|truncatewords:5 }}</td>
+                                    <td>{{ movement.created_by.get_full_name }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Aucun mouvement</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

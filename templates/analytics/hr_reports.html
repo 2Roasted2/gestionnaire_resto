@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports RH{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-users"></i> Rapports Ressources Humaines
+            </h1>
+            <p class="lead text-muted">Analyse du personnel et des présences</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'analytics:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour au dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Employés par département -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-building"></i> Employés par département</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employés par poste -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-briefcase"></i> Employés par poste</h5>
+                </div>
+                <div class="card-body">
+                    {% for position in employees_by_position %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ position.position }}</strong></span>
+                            <span class="badge bg-info">{{ position.count }} employé(s)</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 style="width: {% if employees_by_position.0.count > 0 %}{% widthratio position.count employees_by_position.0.count 100 %}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques de présence -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Présences du mois</h5>
+                </div>
+                <div class="card-body">
+                    {% for stat in attendance_stats %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>
+                            <span class="badge bg-{% if stat.attendance_status == 'PRESENT' %}success{% elif stat.attendance_status == 'ABSENT' %}danger{% else %}warning{% endif %}">
+                                {{ stat.attendance_status }}
+                            </span>
+                        </span>
+                        <strong>{{ stat.count }}</strong>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Congés par type -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-umbrella-beach"></i> Congés par type</h5>
+                </div>
+                <div class="card-body">
+                    {% for leave in leaves_by_type %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><strong>{{ leave.leave_type }}</strong></span>
+                        <span class="badge bg-primary">{{ leave.count }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Congés par statut -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Congés par statut</h5>
+                </div>
+                <div class="card-body">
+                    {% for leave in leaves_by_status %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>
+                            <span class="badge bg-{% if leave.status == 'APPROVED' %}success{% elif leave.status == 'REJECTED' %}danger{% else %}warning{% endif %}">
+                                {{ leave.status }}
+                            </span>
+                        </span>
+                        <strong>{{ leave.count }}</strong>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Masse salariale par département -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Masse salariale par département (ce mois)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="payrollChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Évolution masse salariale -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution masse salariale (6 mois)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="payrollEvolutionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Graphique département
+const deptData = {{ employees_by_department|safe }};
+const deptCtx = document.getElementById('departmentChart').getContext('2d');
+new Chart(deptCtx, {
+    type: 'doughnut',
+    data: {
+        labels: deptData.map(d => d.department__name || 'Non assigné'),
+        datasets: [{
+            data: deptData.map(d => d.count),
+            backgroundColor: [
+                'rgba(13, 110, 253, 0.7)',
+                'rgba(25, 135, 84, 0.7)',
+                'rgba(255, 193, 7, 0.7)',
+                'rgba(220, 53, 69, 0.7)',
+                'rgba(111, 66, 193, 0.7)',
+                'rgba(13, 202, 240, 0.7)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Graphique masse salariale par département
+const payrollData = {{ payroll_by_department|safe }};
+const payrollCtx = document.getElementById('payrollChart').getContext('2d');
+new Chart(payrollCtx, {
+    type: 'bar',
+    data: {
+        labels: payrollData.map(p => p.employee__department__name || 'Non assigné'),
+        datasets: [{
+            label: 'Masse salariale (€)',
+            data: payrollData.map(p => p.total),
+            backgroundColor: 'rgba(40, 167, 69, 0.7)'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + ' €';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Graphique évolution masse salariale
+const evolutionData = {{ payroll_evolution|safe }};
+const evolutionCtx = document.getElementById('payrollEvolutionChart').getContext('2d');
+new Chart(evolutionCtx, {
+    type: 'line',
+    data: {
+        labels: evolutionData.map(e => e.month),
+        datasets: [{
+            label: 'Masse salariale',
+            data: evolutionData.map(e => e.total),
+            borderColor: 'rgb(40, 167, 69)',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + ' €';
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

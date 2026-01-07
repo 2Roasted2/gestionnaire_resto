@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}Réservation {{ reservation.reservation_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-calendar-check"></i> Réservation {{ reservation.reservation_number }}
+            </h1>
+            <p class="lead">
+                <span class="badge bg-{% if reservation.status == 'CONFIRMED' %}success{% elif reservation.status == 'PENDING' %}warning{% elif reservation.status == 'CANCELLED' %}danger{% elif reservation.status == 'NO_SHOW' %}dark{% else %}secondary{% endif %} fs-6">
+                    {{ reservation.get_status_display }}
+                </span>
+            </p>
+        </div>
+        <div class="col-auto">
+            {% if reservation.status == 'PENDING' %}
+            <a href="{% url 'bookings:reservation_confirm' reservation.pk %}" class="btn btn-success">
+                <i class="fas fa-check"></i> Confirmer
+            </a>
+            {% endif %}
+            {% if reservation.status in 'PENDING,CONFIRMED' %}
+            <a href="{% url 'bookings:reservation_cancel' reservation.pk %}" class="btn btn-danger">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+            {% endif %}
+            {% if reservation.status == 'CONFIRMED' and reservation.is_today %}
+            <a href="{% url 'bookings:reservation_complete' reservation.pk %}" class="btn btn-primary">
+                <i class="fas fa-check-double"></i> Terminée
+            </a>
+            <a href="{% url 'bookings:reservation_no_show' reservation.pk %}" class="btn btn-warning">
+                <i class="fas fa-user-slash"></i> Client absent
+            </a>
+            {% endif %}
+            <a href="{% url 'bookings:reservation_update' reservation.pk %}" class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'bookings:reservation_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Informations principales -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informations de la réservation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Date :</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ reservation.reservation_date|date:"l d F Y" }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Heure :</strong>
+                        </div>
+                        <div class="col-6">
+                            <h5>{{ reservation.time_slot }}</h5>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Nombre de personnes :</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="badge bg-primary fs-6">
+                                <i class="fas fa-users"></i> {{ reservation.number_of_guests }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Table assignée :</strong>
+                        </div>
+                        <div class="col-6">
+                            {% if reservation.table %}
+                                <span class="badge bg-info fs-6">Table {{ reservation.table.table_number }}</span>
+                                <br>
+                                <small class="text-muted">
+                                    Capacité: {{ reservation.table.capacity }} pers.
+                                    {% if reservation.table.location %}
+                                        - {{ reservation.table.location.name }}
+                                    {% endif %}
+                                </small>
+                            {% else %}
+                                <span class="text-muted">Aucune table assignée</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Créée par :</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ reservation.created_by.get_full_name|default:"Système" }}
+                            <br>
+                            <small class="text-muted">{{ reservation.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if reservation.confirmed_by %}
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Confirmée par :</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ reservation.confirmed_by.get_full_name }}
+                            <br>
+                            <small class="text-muted">{{ reservation.confirmed_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations client -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Informations client</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <strong>Nom :</strong>
+                        </div>
+                        <div class="col-8">
+                            <h5>{{ reservation.customer_name }}</h5>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <strong>Téléphone :</strong>
+                        </div>
+                        <div class="col-8">
+                            <i class="fas fa-phone"></i> {{ reservation.customer_phone }}
+                        </div>
+                    </div>
+                    
+                    {% if reservation.customer_email %}
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <strong>Email :</strong>
+                        </div>
+                        <div class="col-8">
+                            <i class="fas fa-envelope"></i> {{ reservation.customer_email }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if reservation.special_requests %}
+                    <hr>
+                    <div class="mb-0">
+                        <strong>Demandes spéciales :</strong>
+                        <div class="alert alert-info mt-2 mb-0">
+                            {{ reservation.special_requests|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if reservation.notes %}
+                    <hr>
+                    <div class="mb-0">
+                        <strong>Notes internes :</strong>
+                        <div class="alert alert-warning mt-2 mb-0">
+                            {{ reservation.notes|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Historique -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Historique</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for entry in history %}
+                        <div class="timeline-item mb-3">
+                            <div class="d-flex">
+                                <div class="timeline-icon">
+                                    <i class="fas fa-{% if entry.action == 'CREATED' %}plus{% elif entry.action == 'CONFIRMED' %}check{% elif entry.action == 'CANCELLED' %}times{% elif entry.action == 'MODIFIED' %}edit{% elif entry.action == 'COMPLETED' %}check-double{% else %}user-slash{% endif %} text-{% if entry.action == 'CREATED' %}primary{% elif entry.action == 'CONFIRMED' %}success{% elif entry.action == 'CANCELLED' %}danger{% elif entry.action == 'MODIFIED' %}warning{% elif entry.action == 'COMPLETED' %}info{% else %}dark{% endif %}"></i>
+                                </div>
+                                <div class="ms-3 flex-grow-1">
+                                    <h6 class="mb-0">{{ entry.get_action_display }}</h6>
+                                    <p class="mb-0 text-muted">{{ entry.description }}</p>
+                                    <small class="text-muted">
+                                        Par {{ entry.performed_by.get_full_name|default:"Système" }}
+                                        - {{ entry.performed_at|date:"d/m/Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucun historique disponible</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+</style>
+{% endblock %}

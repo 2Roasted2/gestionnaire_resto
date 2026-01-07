@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Emplacements{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-map-marker-alt"></i> Emplacements
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'bookings:location_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvel emplacement
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for location in locations %}
+        <div class="col-md-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">{{ location.name }}</h5>
+                            {% if location.is_active %}
+                                <span class="badge bg-success">Actif</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactif</span>
+                            {% endif %}
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'bookings:location_update' location.pk %}">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'bookings:location_delete' location.pk %}">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if location.description %}
+                    <p class="card-text text-muted">{{ location.description|truncatewords:20 }}</p>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <span class="badge bg-primary">{{ location.table_count }} table(s)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Aucun emplacement trouvé. Créez-en un pour commencer.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

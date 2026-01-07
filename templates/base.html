@@ -42,30 +42,30 @@
                     {% endif %}
 
                     {% if user.can_manage_inventory %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-boxes"></i> Stock
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inventory:dashboard' %}">
+                                <i class="fas fa-boxes"></i> Stock
+                            </a>
+                        </li>
                     {% endif %}
                     {% if user.can_manage_accounting %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-calculator"></i> Comptabilité
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounting:dashboard' %}">
+                                <i class="fas fa-dollar-sign"></i> Comptabilité
+                            </a>
+                        </li>
                     {% endif %}
                     {% if user.can_manage_reservations %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-calendar-check"></i> Réservations
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'bookings:dashboard' %}">
+                                <i class="fas fa-calendar-check"></i> Réservations
+                            </a>
+                        </li>
                     {% endif %}
                     {% if user.can_manage_orders %}
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-shopping-cart"></i> Commandes
+                        <a class="nav-link" href="{% url 'orders:dashboard' %}">
+                            <i class="fas fa-utensils"></i> Commandes
                         </a>
                     </li>
                     {% endif %}
@@ -95,6 +95,13 @@
         </div>
     </nav>
     {% endif %}
+    <!--{% if user.role in 'ADMIN,MANAGER' %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'analytics:dashboard' %}">
+            <i class="fas fa-chart-line"></i> Rapports Globaux
+        </a>
+    </li>
+    {% endif %}-->
 
     <!-- Messages -->
     {% if messages %}

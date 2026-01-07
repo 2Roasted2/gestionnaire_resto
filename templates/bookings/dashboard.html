@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Réservations - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-calendar-check"></i> Réservations
+            </h1>
+            <p class="lead text-muted">Gestion des réservations du restaurant</p>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Réservations aujourd'hui</h6>
+                            <h2 class="mb-0">{{ today_reservations }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Confirmées aujourd'hui</h6>
+                            <h2 class="mb-0">{{ confirmed_today }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">En attente</h6>
+                            <h2 class="mb-0">{{ pending_reservations }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Tables disponibles</h6>
+                            <h2 class="mb-0">{{ total_tables }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-chair"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <a href="{% url 'bookings:reservation_quick_create' %}" class="btn btn-success w-100">
+                                <i class="fas fa-plus"></i> Nouvelle réservation
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'bookings:reservation_calendar' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-calendar"></i> Planning
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'bookings:reservation_list' %}" class="btn btn-info w-100">
+                                <i class="fas fa-list"></i> Toutes les réservations
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'bookings:table_list' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-chair"></i> Gérer les tables
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Prochaines réservations -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Prochaines réservations</h5>
+                    <a href="{% url 'bookings:reservation_calendar' %}" class="btn btn-sm btn-outline-primary">
+                        Voir planning
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for reservation in upcoming_reservations %}
+                        <a href="{% url 'bookings:reservation_detail' reservation.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ reservation.customer_name }}</h6>
+                                    <small class="text-muted">
+                                        {{ reservation.reservation_date|date:"d/m/Y" }} à {{ reservation.time_slot }}
+                                        - {{ reservation.number_of_guests }} pers.
+                                        {% if reservation.table %}
+                                            - Table {{ reservation.table.table_number }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if reservation.status == 'CONFIRMED' %}success{% elif reservation.status == 'PENDING' %}warning{% else %}secondary{% endif %}">
+                                        {{ reservation.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucune réservation à venir</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Réservations récentes -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Réservations récentes</h5>
+                    <a href="{% url 'bookings:reservation_list' %}" class="btn btn-sm btn-outline-primary">
+                        Voir tout
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for reservation in recent_reservations %}
+                        <a href="{% url 'bookings:reservation_detail' reservation.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ reservation.customer_name }}</h6>
+                                    <small class="text-muted">
+                                        {{ reservation.reservation_date|date:"d/m/Y" }} à {{ reservation.time_slot }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if reservation.status == 'CONFIRMED' %}success{% elif reservation.status == 'PENDING' %}warning{% elif reservation.status == 'CANCELLED' %}danger{% else %}secondary{% endif %}">
+                                        {{ reservation.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucune réservation récente</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques par statut -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Réservations par statut (30 derniers jours)</h5>
+                </div>
+                <div class="card-body">
+                    {% for stat in reservations_by_status %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ stat.status }}</strong></span>
+                            <span class="badge bg-primary">{{ stat.count }} réservation(s)</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune statistique disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Créneaux populaires -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-star"></i> Créneaux les plus demandés</h5>
+                </div>
+                <div class="card-body">
+                    {% for slot in popular_time_slots %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ slot.time_slot }}</strong></span>
+                            <span class="badge bg-success">{{ slot.count }} réservation(s)</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liens vers les modules -->
+    <div class="row g-3 mt-3">
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-3x text-primary mb-3"></i>
+                    <h5>Planning</h5>
+                    <p class="text-muted">Vue calendrier des réservations</p>
+                    <a href="{% url 'bookings:reservation_calendar' %}" class="btn btn-primary">Consulter</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chair fa-3x text-success mb-3"></i>
+                    <h5>Tables</h5>
+                    <p class="text-muted">Gestion des tables et emplacements</p>
+                    <a href="{% url 'bookings:table_list' %}" class="btn btn-success">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x text-warning mb-3"></i>
+                    <h5>Rapports</h5>
+                    <p class="text-muted">Statistiques et analyses</p>
+                    <a href="{% url 'bookings:reports' %}" class="btn btn-warning">Consulter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerte réservations en attente -->
+    {% if pending_reservations > 0 %}
+    <div class="row mt-4">
+        <div class="col">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Attention !</strong> Vous avez {{ pending_reservations }} réservation(s) en attente de confirmation.
+                <a href="{% url 'bookings:reservation_list' %}?status=PENDING" class="alert-link">Voir les réservations</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

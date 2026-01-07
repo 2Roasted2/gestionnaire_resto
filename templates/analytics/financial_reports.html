@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports Financiers{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-euro-sign"></i> Rapports Financiers Détaillés
+            </h1>
+            <p class="lead text-muted">Analyse complète des finances</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'analytics:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour au dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Évolution mensuelle (12 mois) -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution mensuelle (12 mois)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyEvolutionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenus par catégorie -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Revenus par catégorie (année)</h5>
+                </div>
+                <div class="card-body">
+                    {% for cat in revenue_by_category %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ cat.category__name }}</strong></span>
+                            <span class="badge bg-success">{{ cat.total|floatformat:0 }} €</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% if revenue_by_category.0.total > 0 %}{% widthratio cat.total revenue_by_category.0.total 100 %}{% else %}0{% endif %}%">
+                                {% if revenue_by_category.0.total > 0 %}
+                                    {% widthratio cat.total revenue_by_category.0.total 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Dépenses par catégorie -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Dépenses par catégorie (année)</h5>
+                </div>
+                <div class="card-body">
+                    {% for cat in expense_by_category %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ cat.category__name }}</strong></span>
+                            <span class="badge bg-danger">{{ cat.total|floatformat:0 }} €</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-danger" role="progressbar" 
+                                 style="width: {% if expense_by_category.0.total > 0 %}{% widthratio cat.total expense_by_category.0.total 100 %}{% else %}0{% endif %}%">
+                                {% if expense_by_category.0.total > 0 %}
+                                    {% widthratio cat.total expense_by_category.0.total 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Factures par statut -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Factures par statut</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Statut</th>
+                                    <th class="text-end">Nombre</th>
+                                    <th class="text-end">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in invoices_by_status %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-{% if stat.status == 'PAID' %}success{% elif stat.status == 'OVERDUE' %}danger{% else %}warning{% endif %}">
+                                            {{ stat.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">{{ stat.count }}</td>
+                                    <td class="text-end"><strong>{{ stat.total_amount|floatformat:0 }} €</strong></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Aucune facture</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top 10 clients -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 10 Clients</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Client</th>
+                                    <th class="text-end">Factures</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in top_customers %}
+                                <tr>
+                                    <td><strong>{{ forloop.counter }}</strong></td>
+                                    <td>{{ customer.customer_name }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-primary">{{ customer.invoice_count }}</span>
+                                    </td>
+                                    <td class="text-end"><strong>{{ customer.total_amount|floatformat:0 }} €</strong></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Aucune donnée disponible</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Graphique évolution mensuelle
+const ctx = document.getElementById('monthlyEvolutionChart').getContext('2d');
+const monthlyData = {{ monthly_evolution|safe }};
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: monthlyData.map(m => m.month),
+        datasets: [
+            {
+                label: 'Revenus',
+                data: monthlyData.map(m => m.revenue),
+                borderColor: 'rgb(40, 167, 69)',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Dépenses',
+                data: monthlyData.map(m => m.expenses),
+                borderColor: 'rgb(220, 53, 69)',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Balance',
+                data: monthlyData.map(m => m.balance),
+                borderColor: 'rgb(13, 110, 253)',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + ' €';
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

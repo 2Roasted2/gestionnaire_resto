@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Commandes{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-receipt"></i> Toutes les commandes
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'orders:order_quick_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nouvelle commande
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.status }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.order_type }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Date début</label>
+                    {{ search_form.date_from }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Date fin</label>
+                    {{ search_form.date_to }}
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des commandes -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>N° Commande</th>
+                            <th>Type</th>
+                            <th>Table</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Articles</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>
+                                <span class="badge bg-{% if order.order_type == 'DINE_IN' %}primary{% elif order.order_type == 'TAKEAWAY' %}warning{% else %}info{% endif %}">
+                                    {{ order.get_order_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if order.table %}
+                                    Table {{ order.table.table_number }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if order.customer_name %}
+                                    {{ order.customer_name }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ order.order_date|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ order.get_items_count }}</span>
+                            </td>
+                            <td><strong>{{ order.total_amount }} €</strong></td>
+                            <td>
+                                <span class="badge bg-{% if order.status == 'PENDING' %}warning{% elif order.status == 'CONFIRMED' %}info{% elif order.status == 'PREPARING' %}primary{% elif order.status == 'READY' %}success{% elif order.status == 'SERVED' %}secondary{% elif order.status == 'PAID' %}dark{% else %}danger{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'orders:order_detail' order.pk %}" 
+                                   class="btn btn-sm btn-info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">
+                                Aucune commande trouvée
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

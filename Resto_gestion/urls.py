@@ -7,7 +7,12 @@ from django.shortcuts import redirect
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('personnel/', include('personnel.urls')),  # ← NOUVEAU
+    path('personnel/', include('personnel.urls')),
+    path('inventory/', include('inventory.urls')),
+    path('accounting/', include('accounting.urls')),
+    path('bookings/', include('bookings.urls')),
+    path('orders/', include('orders.urls')),
+    path('analytics/', include('analytics.urls')),
     path('', lambda request: redirect('accounts:login')),
 ]
 

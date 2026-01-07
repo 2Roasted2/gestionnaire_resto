@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-boxes"></i> Gestion de Stock
+            </h1>
+            <p class="lead text-muted">Tableau de bord du module Inventory</p>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Produits</h6>
+                            <h2 class="mb-0">{{ total_products }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Valeur du stock</h6>
+                            <h2 class="mb-0">{{ total_stock_value|floatformat:0 }} €</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-euro-sign"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Rupture</h6>
+                            <h2 class="mb-0">{{ out_of_stock }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Stock faible</h6>
+                            <h2 class="mb-0">{{ low_stock }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <a href="{% url 'inventory:product_create' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-plus"></i> Nouveau produit
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'inventory:stock_movement_create' %}" class="btn btn-success w-100">
+                                <i class="fas fa-exchange-alt"></i> Mouvement de stock
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'inventory:purchase_order_create' %}" class="btn btn-warning w-100">
+                                <i class="fas fa-shopping-cart"></i> Nouvelle commande
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'inventory:inventory_create' %}" class="btn btn-info w-100">
+                                <i class="fas fa-clipboard-list"></i> Nouvel inventaire
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Alertes de stock -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-bell"></i> Alertes de stock</h5>
+                    <a href="{% url 'inventory:product_list' %}?stock_status=LOW_STOCK" class="btn btn-sm btn-light">
+                        Voir tout
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for product in alert_products %}
+                        <a href="{% url 'inventory:product_detail' product.pk %}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ product.name }}</h6>
+                                    <small class="text-muted">{{ product.reference }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-danger">{{ product.quantity_in_stock }} {{ product.get_unit_display }}</span>
+                                    <br>
+                                    <small class="text-muted">Min: {{ product.minimum_stock }}</small>
+                                </div>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucune alerte de stock</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Derniers mouvements -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Derniers mouvements</h5>
+                    <a href="{% url 'inventory:stock_movement_list' %}" class="btn btn-sm btn-outline-primary">
+                        Voir tout
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for movement in recent_movements %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ movement.product.name }}</h6>
+                                    <small class="text-muted">
+                                        {{ movement.created_at|date:"d/m/Y H:i" }} - {{ movement.created_by.get_full_name }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if movement.movement_type == 'IN' %}success{% elif movement.movement_type == 'OUT' %}danger{% else %}secondary{% endif %}">
+                                        {{ movement.get_movement_type_display }}
+                                    </span>
+                                    <br>
+                                    <strong>{{ movement.quantity }} {{ movement.product.get_unit_display }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucun mouvement récent</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liens vers les modules -->
+    <div class="row g-3 mt-3">
+        <div class="col-md-3">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-box-open fa-3x text-primary mb-3"></i>
+                    <h5>Produits</h5>
+                    <p class="text-muted">{{ total_products }} produits</p>
+                    <a href="{% url 'inventory:product_list' %}" class="btn btn-primary">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-tags fa-3x text-success mb-3"></i>
+                    <h5>Catégories</h5>
+                    <p class="text-muted">{{ total_categories }} catégories</p>
+                    <a href="{% url 'inventory:category_list' %}" class="btn btn-success">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-truck fa-3x text-warning mb-3"></i>
+                    <h5>Fournisseurs</h5>
+                    <p class="text-muted">{{ total_suppliers }} fournisseurs</p>
+                    <a href="{% url 'inventory:supplier_list' %}" class="btn btn-warning">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart fa-3x text-info mb-3"></i>
+                    <h5>Commandes</h5>
+                    <p class="text-muted">{{ pending_orders }} en cours</p>
+                    <a href="{% url 'inventory:purchase_order_list' %}" class="btn btn-info">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-list fa-3x text-secondary mb-3"></i>
+                    <h5>Inventaires</h5>
+                    <p class="text-muted">Contrôle physique</p>
+                    <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-exchange-alt fa-3x text-danger mb-3"></i>
+                    <h5>Mouvements</h5>
+                    <p class="text-muted">Historique complet</p>
+                    <a href="{% url 'inventory:stock_movement_list' %}" class="btn btn-danger">Voir</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
+                    <h5>Rapports</h5>
+                    <p class="text-muted">Analyses et stats</p>
+                    <a href="{% url 'inventory:reports' %}" class="btn btn-primary">Consulter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

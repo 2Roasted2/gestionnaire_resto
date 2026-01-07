@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Facture {{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-file-invoice"></i> Facture {{ invoice.invoice_number }}
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'accounting:invoice_add_payment' invoice.pk %}" class="btn btn-success">
+                <i class="fas fa-money-bill-wave"></i> Enregistrer paiement
+            </a>
+            <a href="{% url 'accounting:invoice_update' invoice.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print"></i> Imprimer
+            </button>
+            <a href="{% url 'accounting:invoice_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <!-- En-tête facture -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h3>Information client</h3>
+                    <p class="mb-1"><strong>{{ invoice.customer_name }}</strong></p>
+                    {% if invoice.customer_email %}
+                        <p class="mb-1"><i class="fas fa-envelope"></i> {{ invoice.customer_email }}</p>
+                    {% endif %}
+                    {% if invoice.customer_phone %}
+                        <p class="mb-1"><i class="fas fa-phone"></i> {{ invoice.customer_phone }}</p>
+                    {% endif %}
+                    {% if invoice.customer_address %}
+                        <p class="mb-0"><i class="fas fa-map-marker-alt"></i> {{ invoice.customer_address|linebreaks }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-end">
+                    <h2>{{ invoice.invoice_number }}</h2>
+                    <p class="mb-1"><strong>Date d'émission :</strong> {{ invoice.issue_date|date:"d/m/Y" }}</p>
+                    <p class="mb-1"><strong>Date d'échéance :</strong> {{ invoice.due_date|date:"d/m/Y" }}</p>
+                    <p class="mb-0">
+                        <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'OVERDUE' %}danger{% elif invoice.status == 'PARTIALLY_PAID' %}warning{% else %}info{% endif %} fs-6">
+                            {{ invoice.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Articles de la facture -->
+            <h5 class="mb-3">Articles</h5>
+            <div class="table-responsive mb-4">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="text-end">Quantité</th>
+                            <th class="text-end">Prix unitaire</th>
+                            <th class="text-end">Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td class="text-end">{{ item.quantity }}</td>
+                            <td class="text-end">{{ item.unit_price }} €</td>
+                            <td class="text-end"><strong>{{ item.total_price|floatformat:2 }} €</strong></td>
+                            <td>
+                                <a href="{% url 'accounting:invoice_item_delete' item.pk %}" 
+                                   class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Aucun article</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="{% url 'accounting:invoice_add_item' invoice.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i> Ajouter un article
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <tr>
+                            <td class="text-end"><strong>Sous-total :</strong></td>
+                            <td class="text-end">{{ invoice.subtotal|floatformat:2 }} €</td>
+                        </tr>
+                        <tr>
+                            <td class="text-end"><strong>TVA ({{ invoice.tax_rate }}%) :</strong></td>
+                            <td class="text-end">{{ invoice.tax_amount|floatformat:2 }} €</td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td class="text-end"><strong>TOTAL :</strong></td>
+                            <td class="text-end"><h4>{{ invoice.total_amount|floatformat:2 }} €</h4></td>
+                        </tr>
+                        <tr class="table-success">
+                            <td class="text-end"><strong>Payé :</strong></td>
+                            <td class="text-end"><strong>{{ invoice.paid_amount|floatformat:2 }} €</strong></td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td class="text-end"><strong>Reste à payer :</strong></td>
+                            <td class="text-end"><h4>{{ invoice.remaining_balance|floatformat:2 }} €</h4></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Historique des paiements -->
+            {% if payments %}
+            <hr>
+            <h5 class="mb-3">Historique des paiements</h5>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>N° Paiement</th>
+                            <th>Montant</th>
+                            <th>Mode de paiement</th>
+                            <th>Référence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.payment_date|date:"d/m/Y" }}</td>
+                            <td>{{ payment.payment_number }}</td>
+                            <td><strong class="text-success">{{ payment.amount }} €</strong></td>
+                            <td>{{ payment.get_payment_method_display }}</td>
+                            <td>{{ payment.reference|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Notes -->
+            {% if invoice.notes %}
+            <hr>
+            <h5>Notes</h5>
+            <p>{{ invoice.notes|linebreaks }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

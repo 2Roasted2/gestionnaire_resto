@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Produits{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-box-open"></i> Catalogue des produits
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventory:product_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau produit
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.category }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.supplier }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.stock_status }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des produits -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Référence</th>
+                            <th>Nom</th>
+                            <th>Catégorie</th>
+                            <th>Fournisseur</th>
+                            <th>Stock</th>
+                            <th>Prix unit.</th>
+                            <th>Valeur stock</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" 
+                                         alt="{{ product.name }}"
+                                         style="width: 50px; height: 50px; object-fit: cover;"
+                                         class="rounded">
+                                {% else %}
+                                    <div class="bg-secondary rounded d-inline-flex align-items-center justify-content-center"
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-box text-white"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ product.reference }}</strong></td>
+                            <td>{{ product.name }}</td>
+                            <td>
+                                {% if product.category %}
+                                    <span class="badge bg-info">{{ product.category.name }}</span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ product.supplier.name|default:"-" }}</td>
+                            <td>
+                                <strong>{{ product.quantity_in_stock }}</strong> {{ product.get_unit_display }}
+                                <br>
+                                <small class="text-muted">Min: {{ product.minimum_stock }}</small>
+                            </td>
+                            <td>{{ product.unit_price }} €</td>
+                            <td><strong>{{ product.stock_value|floatformat:2 }} €</strong></td>
+                            <td>
+                                {% if product.stock_status == 'OUT_OF_STOCK' %}
+                                    <span class="badge bg-danger">Rupture</span>
+                                {% elif product.stock_status == 'LOW_STOCK' %}
+                                    <span class="badge bg-warning">Stock faible</span>
+                                {% elif product.stock_status == 'NORMAL' %}
+                                    <span class="badge bg-info">Normal</span>
+                                {% else %}
+                                    <span class="badge bg-success">Optimal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'inventory:product_detail' product.pk %}" 
+                                   class="btn btn-sm btn-info" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'inventory:product_update' product.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'inventory:product_delete' product.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted">
+                                Aucun produit trouvé
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

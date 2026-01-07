@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Finaliser inventaire{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Finaliser l'inventaire
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Vous êtes sur le point de finaliser l'inventaire 
+                        <strong>{{ inventory.inventory_number }}</strong>.
+                    </p>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Cette action va :</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Créer des ajustements de stock pour tous les écarts détectés</li>
+                            <li>Mettre à jour les quantités en stock de tous les produits</li>
+                            <li>Marquer l'inventaire comme "Terminé"</li>
+                        </ul>
+                    </div>
+
+                    <!-- Résumé des écarts -->
+                    {% if discrepancies %}
+                    <h5 class="mt-4">Écarts qui seront ajustés :</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Écart</th>
+                                    <th>Valeur</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for disc in discrepancies %}
+                                <tr>
+                                    <td>{{ disc.product.name }}</td>
+                                    <td>
+                                        {% if disc.difference > 0 %}
+                                            <span class="text-success">+{{ disc.difference }}</span>
+                                        {% else %}
+                                            <span class="text-danger">{{ disc.difference }}</span>
+                                        {% endif %}
+                                        {{ disc.product.get_unit_display }}
+                                    </td>
+                                    <td>
+                                        {% if disc.value > 0 %}
+                                            <span class="text-success">+{{ disc.value|floatformat:2 }} €</span>
+                                        {% else %}
+                                            <span class="text-danger">{{ disc.value|floatformat:2 }} €</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success mt-4">
+                        <i class="fas fa-check"></i>
+                        Aucun écart détecté ! Tous les stocks correspondent aux quantités physiques.
+                    </div>
+                    {% endif %}
+
+                    <div class="alert alert-warning mt-4">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Attention :</strong> Cette action est irréversible une fois validée.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'inventory:inventory_detail' inventory.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Finaliser l'inventaire
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

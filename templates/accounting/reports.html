@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports Comptabilité{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-chart-bar"></i> Rapports et Analyses Financières
+            </h1>
+        </div>
+    </div>
+
+    <!-- Statistiques annuelles -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Revenus annuels</h6>
+                    <h2 class="mb-0">{{ yearly_income|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Dépenses annuelles</h6>
+                    <h2 class="mb-0">{{ yearly_expense|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-{% if yearly_balance >= 0 %}primary{% else %}warning{% endif %}">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Balance annuelle</h6>
+                    <h2 class="mb-0">{{ yearly_balance|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Revenus par catégorie -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Revenus par catégorie (mois actuel)</h5>
+                </div>
+                <div class="card-body">
+                    {% for cat in income_by_category %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ cat.category__name }}</strong></span>
+                            <span class="badge bg-success">{{ cat.total|floatformat:0 }} €</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" 
+                                 role="progressbar" 
+                                 style="width: {% if yearly_income > 0 %}{% widthratio cat.total yearly_income 100 %}{% else %}0{% endif %}%">
+                                {% if yearly_income > 0 %}
+                                    {% widthratio cat.total yearly_income 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucun revenu ce mois</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Dépenses par catégorie -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Dépenses par catégorie (mois actuel)</h5>
+                </div>
+                <div class="card-body">
+                    {% for cat in expense_by_category %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ cat.category__name }}</strong></span>
+                            <span class="badge bg-danger">{{ cat.total|floatformat:0 }} €</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-danger" 
+                                 role="progressbar" 
+                                 style="width: {% if yearly_expense > 0 %}{% widthratio cat.total yearly_expense 100 %}{% else %}0{% endif %}%">
+                                {% if yearly_expense > 0 %}
+                                    {% widthratio cat.total yearly_expense 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune dépense ce mois</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Factures par statut -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Factures par statut</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Statut</th>
+                                    <th class="text-end">Nombre</th>
+                                    <th class="text-end">Montant total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in invoices_by_status %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-{% if stat.status == 'PAID' %}success{% elif stat.status == 'OVERDUE' %}danger{% elif stat.status == 'PARTIALLY_PAID' %}warning{% else %}info{% endif %}">
+                                            {{ stat.status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">{{ stat.count }}</td>
+                                    <td class="text-end"><strong>{{ stat.total|floatformat:0|default:"0" }} €</strong></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Aucune facture</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenus par mode de paiement -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-credit-card"></i> Revenus par mode de paiement (mois actuel)</h5>
+                </div>
+                <div class="card-body">
+                    {% for method in payment_methods %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ method.payment_method }}</strong></span>
+                            <span class="badge bg-primary">{{ method.total|floatformat:0 }} €</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucun revenu ce mois</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions d'export -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-download"></i> Export des données</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Exportez les données comptables au format Excel ou PDF</p>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" disabled>
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger w-100" disabled>
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-info w-100" disabled>
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounting:dashboard' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle"></i> Fonctionnalités d'export à venir...
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

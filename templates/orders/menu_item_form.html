@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} plat{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card shadow">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fas fa-utensils"></i> {{ action }} un plat
+            </h4>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h5 class="border-bottom pb-2 mb-3">
+                    <i class="fas fa-info-circle"></i> Informations de base
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            Nom du plat *
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger small">{{ form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">
+                            Catégorie *
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger small">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">
+                        Description
+                    </label>
+                    {{ form.description }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.price.id_for_label }}" class="form-label">
+                            Prix (€) *
+                        </label>
+                        {{ form.price }}
+                        {% if form.price.errors %}
+                            <div class="text-danger small">{{ form.price.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">
+                            Image du plat
+                        </label>
+                        {{ form.image }}
+                        {% if item and item.image %}
+                            <div class="mt-2">
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" 
+                                     style="max-width: 200px; max-height: 200px;" class="rounded">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h5 class="border-bottom pb-2 mb-3 mt-4">
+                    <i class="fas fa-info"></i> Informations complémentaires
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.calories.id_for_label }}" class="form-label">
+                            Calories
+                        </label>
+                        {{ form.calories }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.preparation_time.id_for_label }}" class="form-label">
+                            Temps de préparation (min)
+                        </label>
+                        {{ form.preparation_time }}
+                    </div>
+                </div>
+
+                <h5 class="border-bottom pb-2 mb-3 mt-4">
+                    <i class="fas fa-check-square"></i> Options
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            {{ form.is_available }}
+                            <label class="form-check-label" for="{{ form.is_available.id_for_label }}">
+                                Plat disponible
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            {{ form.track_inventory }}
+                            <label class="form-check-label" for="{{ form.track_inventory.id_for_label }}">
+                                Suivre le stock
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check">
+                            {{ form.is_vegetarian }}
+                            <label class="form-check-label" for="{{ form.is_vegetarian.id_for_label }}">
+                                🥬 Végétarien
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check">
+                            {{ form.is_vegan }}
+                            <label class="form-check-label" for="{{ form.is_vegan.id_for_label }}">
+                                🌱 Végan
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check">
+                            {{ form.is_gluten_free }}
+                            <label class="form-check-label" for="{{ form.is_gluten_free.id_for_label }}">
+                                🌾 Sans gluten
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check">
+                            {{ form.is_spicy }}
+                            <label class="form-check-label" for="{{ form.is_spicy.id_for_label }}">
+                                🌶️ Épicé
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'orders:menu_item_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

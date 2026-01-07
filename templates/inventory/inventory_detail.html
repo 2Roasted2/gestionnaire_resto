@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventaire {{ inventory.inventory_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-clipboard-list"></i> Inventaire {{ inventory.inventory_number }}
+            </h1>
+            <p class="lead text-muted">{{ inventory.inventory_date|date:"d/m/Y" }}</p>
+        </div>
+        <div class="col-auto">
+            {% if inventory.status == 'PLANNED' or inventory.status == 'IN_PROGRESS' %}
+                <a href="{% url 'inventory:inventory_complete' inventory.pk %}" class="btn btn-success">
+                    <i class="fas fa-check"></i> Finaliser l'inventaire
+                </a>
+            {% endif %}
+            <a href="{% url 'inventory:inventory_update' inventory.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <!-- Informations générales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6>Articles inventoriés</h6>
+                    <h2>{{ items.count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h6>Écarts détectés</h6>
+                    <h2>{{ discrepancies|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h6>Statut</h6>
+                    <h3>{{ inventory.get_status_display }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6>Créé par</h6>
+                    <h5>{{ inventory.created_by.get_full_name }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Écarts détectés -->
+    {% if discrepancies %}
+    <div class="card shadow mb-4">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Écarts détectés</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Stock théorique</th>
+                            <th>Stock physique</th>
+                            <th>Écart</th>
+                            <th>Valeur de l'écart</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for disc in discrepancies %}
+                        <tr>
+                            <td>
+                                <strong>{{ disc.product.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ disc.product.reference }}</small>
+                            </td>
+                            <td>{{ disc.product.quantity_in_stock }} {{ disc.product.get_unit_display }}</td>
+                            <td>
+                                {% for item in items %}
+                                    {% if item.product == disc.product %}
+                                        {{ item.physical_quantity }} {{ disc.product.get_unit_display }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if disc.difference > 0 %}
+                                    <span class="text-success">+{{ disc.difference }}</span>
+                                {% else %}
+                                    <span class="text-danger">{{ disc.difference }}</span>
+                                {% endif %}
+                                {{ disc.product.get_unit_display }}
+                            </td>
+                            <td>
+                                {% if disc.value > 0 %}
+                                    <span class="text-success">+{{ disc.value|floatformat:2 }} €</span>
+                                {% else %}
+                                    <span class="text-danger">{{ disc.value|floatformat:2 }} €</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Liste des articles -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Articles de l'inventaire</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Référence</th>
+                            <th>Stock théorique</th>
+                            <th>Stock physique</th>
+                            <th>Écart</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'inventory:product_detail' item.product.pk %}">
+                                    {{ item.product.name }}
+                                </a>
+                            </td>
+                            <td>{{ item.product.reference }}</td>
+                            <td>{{ item.theoretical_quantity }} {{ item.product.get_unit_display }}</td>
+                            <td>
+                                <strong>{{ item.physical_quantity }}</strong> {{ item.product.get_unit_display }}
+                            </td>
+                            <td>
+                                {% if item.discrepancy > 0 %}
+                                    <span class="badge bg-success">+{{ item.discrepancy }}</span>
+                                {% elif item.discrepancy < 0 %}
+                                    <span class="badge bg-danger">{{ item.discrepancy }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if inventory.status != 'COMPLETED' %}
+                                <a href="{% url 'inventory:inventory_update_item' inventory.pk item.pk %}" 
+                                   class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes -->
+    {% if inventory.notes %}
+    <div class="card shadow mt-3">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notes</h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-0">{{ inventory.notes|linebreaks }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter articles - {{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6">
+                <i class="fas fa-plus"></i> Ajouter des articles à la facture {{ invoice.invoice_number }}
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulaire d'ajout -->
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Nouvel article</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                Description *
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.quantity.id_for_label }}" class="form-label">
+                                Quantité *
+                            </label>
+                            {{ form.quantity }}
+                            {% if form.quantity.errors %}
+                                <div class="text-danger small">{{ form.quantity.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.unit_price.id_for_label }}" class="form-label">
+                                Prix unitaire (€) *
+                            </label>
+                            {{ form.unit_price }}
+                            {% if form.unit_price.errors %}
+                                <div class="text-danger small">{{ form.unit_price.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus"></i> Ajouter l'article
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des articles -->
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Articles de la facture</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-end">Qté</th>
+                                    <th class="text-end">Prix unit.</th>
+                                    <th class="text-end">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td>{{ item.description }}</td>
+                                    <td class="text-end">{{ item.quantity }}</td>
+                                    <td class="text-end">{{ item.unit_price }} €</td>
+                                    <td class="text-end"><strong>{{ item.total_price|floatformat:2 }} €</strong></td>
+                                    <td>
+                                        <a href="{% url 'accounting:invoice_item_delete' item.pk %}" 
+                                           class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Aucun article</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end"><strong>Sous-total :</strong></td>
+                                    <td class="text-end" colspan="2">
+                                        <strong>{{ invoice.subtotal|floatformat:2 }} €</strong>
+                                    </td>
+                                </tr>
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end"><strong>TVA ({{ invoice.tax_rate }}%) :</strong></td>
+                                    <td class="text-end" colspan="2">
+                                        <strong>{{ invoice.tax_amount|floatformat:2 }} €</strong>
+                                    </td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <td colspan="3" class="text-end"><strong>TOTAL :</strong></td>
+                                    <td class="text-end" colspan="2">
+                                        <h5 class="mb-0">{{ invoice.total_amount|floatformat:2 }} €</h5>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{% url 'accounting:invoice_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour aux factures
+                        </a>
+                        <a href="{% url 'accounting:invoice_detail' invoice.pk %}" class="btn btn-success">
+                            <i class="fas fa-check"></i> Terminer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

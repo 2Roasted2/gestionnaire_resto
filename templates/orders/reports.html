@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports Commandes{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-chart-bar"></i> Rapports et Statistiques
+            </h1>
+            <p class="lead text-muted">Analyse des ventes (30 derniers jours)</p>
+        </div>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Total commandes</h6>
+                    <h2 class="mb-0">{{ total_orders }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Revenus totaux</h6>
+                    <h2 class="mb-0">{{ total_revenue|floatformat:0 }} €</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-info">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Panier moyen</h6>
+                    <h2 class="mb-0">{{ avg_order_value|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Top 10 plats les plus vendus -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 10 - Plats les plus vendus</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Plat</th>
+                                    <th class="text-end">Quantité</th>
+                                    <th class="text-end">Revenus</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in top_selling_items %}
+                                <tr>
+                                    <td><strong>{{ forloop.counter }}</strong></td>
+                                    <td>{{ item.menu_item__name }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-primary">{{ item.total_quantity }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <strong>{{ item.total_revenue|floatformat:2 }} €</strong>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Aucune donnée disponible</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenus par type de commande -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Revenus par type de commande</h5>
+                </div>
+                <div class="card-body">
+                    {% for type_stat in revenue_by_type %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ type_stat.order_type }}</strong></span>
+                            <div>
+                                <span class="badge bg-primary">{{ type_stat.count }} commande(s)</span>
+                                <span class="badge bg-success">{{ type_stat.total|floatformat:0 }} €</span>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% if total_revenue > 0 %}{% widthratio type_stat.total total_revenue 100 %}{% else %}0{% endif %}%">
+                                {% if total_revenue > 0 %}
+                                    {% widthratio type_stat.total total_revenue 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Commandes par statut -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Répartition par statut</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for stat in orders_by_status %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-uppercase mb-2">{{ stat.status }}</h6>
+                                    <h3 class="mb-0">{{ stat.count }}</h3>
+                                    <small class="text-muted">
+                                        {% if total_orders > 0 %}
+                                            ({% widthratio stat.count total_orders 100 %}%)
+                                        {% else %}
+                                            (0%)
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions d'export -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-download"></i> Export des données</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Exportez les statistiques de ventes</p>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" disabled>
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger w-100" disabled>
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-info w-100" disabled>
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'orders:dashboard' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle"></i> Fonctionnalités d'export à venir...
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

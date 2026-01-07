@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter ingrédient - {{ item.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-6">
+                <i class="fas fa-carrot"></i> Gérer les ingrédients - {{ item.name }}
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulaire d'ajout -->
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Ajouter un ingrédient</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.product.id_for_label }}" class="form-label">
+                                Ingrédient (Produit) *
+                            </label>
+                            {{ form.product }}
+                            {% if form.product.errors %}
+                                <div class="text-danger small">{{ form.product.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.quantity_needed.id_for_label }}" class="form-label">
+                                Quantité nécessaire *
+                            </label>
+                            {{ form.quantity_needed }}
+                            <small class="text-muted">Quantité nécessaire pour une portion</small>
+                            {% if form.quantity_needed.errors %}
+                                <div class="text-danger small">{{ form.quantity_needed.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus"></i> Ajouter l'ingrédient
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des ingrédients -->
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Ingrédients du plat</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ingrédient</th>
+                                    <th>Quantité</th>
+                                    <th>Unité</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ingredient in ingredients %}
+                                <tr>
+                                    <td>{{ ingredient.product.name }}</td>
+                                    <td>{{ ingredient.quantity_needed }}</td>
+                                    <td>{{ ingredient.product.get_unit_display }}</td>
+                                    <td>
+                                        <a href="{% url 'orders:menu_item_ingredient_delete' ingredient.pk %}" 
+                                           class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Aucun ingrédient</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{% url 'orders:menu_item_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour au menu
+                        </a>
+                        <a href="{% url 'orders:menu_item_detail' item.pk %}" class="btn btn-success">
+                            <i class="fas fa-check"></i> Terminer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmer réservation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Confirmer la réservation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Voulez-vous confirmer cette réservation ?
+                    </p>
+                    
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h5>{{ reservation.customer_name }}</h5>
+                            <p class="mb-1">
+                                <i class="fas fa-calendar"></i> {{ reservation.reservation_date|date:"l d F Y" }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-clock"></i> {{ reservation.time_slot }}
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-users"></i> {{ reservation.number_of_guests }} personnes
+                            </p>
+                            {% if reservation.table %}
+                            <p class="mb-0">
+                                <i class="fas fa-chair"></i> Table {{ reservation.table.table_number }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        La réservation sera marquée comme confirmée et le client pourra être informé.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'bookings:reservation_detail' reservation.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Confirmer la réservation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Transactions{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-exchange-alt"></i> Transactions financières
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'accounting:transaction_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle transaction
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.transaction_type }}
+                </div>
+                <div class="col-md-2">
+                    {{ search_form.category }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Date début</label>
+                    {{ search_form.date_from }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Date fin</label>
+                    {{ search_form.date_to }}
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Résumé financier -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6>Total Revenus</h6>
+                    <h2>{{ totals.income|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h6>Total Dépenses</h6>
+                    <h2>{{ totals.expense|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6>Balance</h6>
+                    <h2>{{ totals.balance|floatformat:2 }} €</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des transactions -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>N° Transaction</th>
+                            <th>Type</th>
+                            <th>Catégorie</th>
+                            <th>Description</th>
+                            <th>Mode paiement</th>
+                            <th>Montant</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.date|date:"d/m/Y" }}</td>
+                            <td><strong>{{ transaction.transaction_number }}</strong></td>
+                            <td>
+                                <span class="badge bg-{% if transaction.transaction_type == 'INCOME' %}success{% else %}danger{% endif %}">
+                                    {{ transaction.get_transaction_type_display }}
+                                </span>
+                            </td>
+                            <td>{{ transaction.category.name }}</td>
+                            <td>{{ transaction.description|truncatewords:8 }}</td>
+                            <td>{{ transaction.get_payment_method_display }}</td>
+                            <td>
+                                <strong class="{% if transaction.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if transaction.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ transaction.amount }} €
+                                </strong>
+                            </td>
+                            <td>
+                                <a href="{% url 'accounting:transaction_update' transaction.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'accounting:transaction_delete' transaction.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                Aucune transaction trouvée
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

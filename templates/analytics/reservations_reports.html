@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports Réservations{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-calendar-check"></i> Rapports Réservations
+            </h1>
+            <p class="lead text-muted">Analyse des réservations (30 derniers jours)</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'analytics:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour au dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Réservations par statut -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Répartition par statut</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Créneaux horaires populaires -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Créneaux horaires les plus demandés</h5>
+                </div>
+                <div class="card-body">
+                    {% for slot in popular_time_slots %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ slot.time_slot }}</strong></span>
+                            <span class="badge bg-success">{{ slot.count }} réservations</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% if popular_time_slots.0.count > 0 %}{% widthratio slot.count popular_time_slots.0.count 100 %}{% else %}0{% endif %}%">
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables les plus réservées -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 10 - Tables les plus réservées</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Table</th>
+                                    <th class="text-end">Nombre de réservations</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for table in popular_tables %}
+                                <tr>
+                                    <td><strong>{{ forloop.counter }}</strong></td>
+                                    <td>Table {{ table.table__table_number }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-primary">{{ table.count }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Aucune donnée disponible</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Réservations par jour de la semaine -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar-week"></i> Affluence par jour de la semaine</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Évolution mensuelle -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Évolution mensuelle des réservations</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Graphique par statut
+const statusData = {{ reservations_by_status|safe }};
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: statusData.map(s => s.status),
+        datasets: [{
+            data: statusData.map(s => s.count),
+            backgroundColor: [
+                'rgba(25, 135, 84, 0.7)',   // CONFIRMED - green
+                'rgba(255, 193, 7, 0.7)',   // PENDING - yellow
+                'rgba(220, 53, 69, 0.7)',   // CANCELLED - red
+                'rgba(108, 117, 125, 0.7)', // COMPLETED - gray
+                'rgba(111, 66, 193, 0.7)'   // NO_SHOW - purple
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Graphique par jour de la semaine
+const weekdayData = {{ reservations_by_weekday|safe }};
+const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+new Chart(weekdayCtx, {
+    type: 'bar',
+    data: {
+        labels: weekdayData.map(w => w.day),
+        datasets: [{
+            label: 'Nombre de réservations',
+            data: weekdayData.map(w => w.count),
+            backgroundColor: 'rgba(13, 110, 253, 0.7)'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Graphique évolution mensuelle
+const monthlyData = {{ monthly_reservations|safe }};
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: monthlyData.map(m => m.month),
+        datasets: [
+            {
+                label: 'Total réservations',
+                data: monthlyData.map(m => m.total),
+                borderColor: 'rgb(13, 110, 253)',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Confirmées',
+                data: monthlyData.map(m => m.confirmed),
+                borderColor: 'rgb(25, 135, 84)',
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

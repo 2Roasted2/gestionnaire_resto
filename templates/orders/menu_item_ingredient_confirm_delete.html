@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer ingrédient{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Êtes-vous sûr de vouloir supprimer cet ingrédient ?
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Plat :</strong> {{ item.name }}<br>
+                        <strong>Ingrédient :</strong> {{ ingredient.product.name }}<br>
+                        <strong>Quantité :</strong> {{ ingredient.quantity_needed }} {{ ingredient.product.get_unit_display }}
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'orders:menu_item_detail' item.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

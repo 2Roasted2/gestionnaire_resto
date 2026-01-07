@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer facture{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Êtes-vous sûr de vouloir supprimer la facture 
+                        <strong>{{ invoice.invoice_number }}</strong> ?
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Client :</strong> {{ invoice.customer_name }}<br>
+                        <strong>Date :</strong> {{ invoice.issue_date|date:"d/m/Y" }}<br>
+                        <strong>Montant :</strong> {{ invoice.total_amount }} €<br>
+                        <strong>Statut :</strong> {{ invoice.get_status_display }}
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Attention :</strong> Cette action supprimera également :
+                        <ul class="mb-0 mt-2">
+                            <li>Tous les articles de la facture</li>
+                            <li>Tous les paiements associés</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'accounting:invoice_detail' invoice.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

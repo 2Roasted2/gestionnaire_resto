@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer mouvement{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Êtes-vous sûr de vouloir supprimer ce mouvement de stock ?
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Produit :</strong> {{ movement.product.name }}<br>
+                        <strong>Type :</strong> {{ movement.get_movement_type_display }}<br>
+                        <strong>Quantité :</strong> {{ movement.quantity }} {{ movement.product.get_unit_display }}<br>
+                        <strong>Date :</strong> {{ movement.created_at|date:"d/m/Y H:i" }}<br>
+                        <strong>Motif :</strong> {{ movement.reason }}
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Attention :</strong> Le stock du produit sera automatiquement ajusté pour annuler ce mouvement.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'inventory:stock_movement_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmer la suppression
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

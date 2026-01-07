@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Tables{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-chair"></i> Tables du restaurant
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'bookings:table_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle table
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>N° Table</th>
+                            <th>Emplacement</th>
+                            <th>Capacité</th>
+                            <th>Description</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for table in tables %}
+                        <tr>
+                            <td><strong>{{ table.table_number }}</strong></td>
+                            <td>
+                                {% if table.location %}
+                                    <span class="badge bg-info">{{ table.location.name }}</span>
+                                {% else %}
+                                    <span class="text-muted">Non assigné</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i class="fas fa-users"></i> {{ table.capacity }} personnes
+                            </td>
+                            <td>{{ table.description|truncatewords:10|default:"-" }}</td>
+                            <td>
+                                {% if table.is_available %}
+                                    <span class="badge bg-success">Disponible</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Indisponible</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'bookings:table_update' table.pk %}" 
+                                   class="btn btn-sm btn-warning" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'bookings:table_delete' table.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                Aucune table trouvée
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

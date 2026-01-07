@@ -41,6 +41,11 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap4',
     'personnel',
+    'inventory',
+    'accounting',
+    'bookings',
+    'orders',
+    'analytics',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

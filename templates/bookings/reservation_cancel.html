@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Annuler réservation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-times-circle"></i> Annuler la réservation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        Êtes-vous sûr de vouloir annuler cette réservation ?
+                    </p>
+                    
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h5>{{ reservation.customer_name }}</h5>
+                            <p class="mb-1">
+                                <strong>Date :</strong> {{ reservation.reservation_date|date:"d/m/Y" }} à {{ reservation.time_slot }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Personnes :</strong> {{ reservation.number_of_guests }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Attention :</strong> L'annulation libérera la table pour d'autres réservations.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'bookings:reservation_detail' reservation.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times"></i> Confirmer l'annulation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block title %}Comptabilité - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-dollar-sign"></i> Comptabilité
+            </h1>
+            <p class="lead text-muted">Tableau de bord financier</p>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Revenus du mois</h6>
+                            <h2 class="mb-0">{{ monthly_income|floatformat:0 }} €</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Dépenses du mois</h6>
+                            <h2 class="mb-0">{{ monthly_expenses|floatformat:0 }} €</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-{% if monthly_balance >= 0 %}primary{% else %}warning{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Balance du mois</h6>
+                            <h2 class="mb-0">{{ monthly_balance|floatformat:0 }} €</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-uppercase mb-0">Factures impayées</h6>
+                            <h2 class="mb-0">{{ unpaid_invoices|floatformat:0 }} €</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <a href="{% url 'accounting:transaction_create' %}" class="btn btn-success w-100">
+                                <i class="fas fa-plus"></i> Nouvelle transaction
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounting:invoice_create' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-file-invoice"></i> Nouvelle facture
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounting:transaction_list' %}" class="btn btn-info w-100">
+                                <i class="fas fa-list"></i> Voir transactions
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounting:reports' %}" class="btn btn-warning w-100">
+                                <i class="fas fa-chart-bar"></i> Rapports
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Dernières transactions -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Dernières transactions</h5>
+                    <a href="{% url 'accounting:transaction_list' %}" class="btn btn-sm btn-outline-primary">
+                        Voir tout
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for transaction in recent_transactions %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ transaction.description|truncatewords:8 }}</h6>
+                                    <small class="text-muted">
+                                        {{ transaction.date|date:"d/m/Y" }} - {{ transaction.category.name }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if transaction.transaction_type == 'INCOME' %}success{% else %}danger{% endif %}">
+                                        {{ transaction.get_transaction_type_display }}
+                                    </span>
+                                    <br>
+                                    <strong class="{% if transaction.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if transaction.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ transaction.amount }} €
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucune transaction récente</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Factures récentes -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Factures récentes</h5>
+                    <a href="{% url 'accounting:invoice_list' %}" class="btn btn-sm btn-outline-primary">
+                        Voir tout
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for invoice in recent_invoices %}
+                        <a href="{% url 'accounting:invoice_detail' invoice.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{{ invoice.invoice_number }}</h6>
+                                    <small class="text-muted">{{ invoice.customer_name }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if invoice.status == 'PAID' %}success{% elif invoice.status == 'OVERDUE' %}danger{% elif invoice.status == 'PARTIALLY_PAID' %}warning{% else %}info{% endif %}">
+                                        {{ invoice.get_status_display }}
+                                    </span>
+                                    <br>
+                                    <strong>{{ invoice.total_amount }} €</strong>
+                                </div>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <p class="text-muted mb-0">Aucune facture récente</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphique Revenus vs Dépenses -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Revenus vs Dépenses (6 derniers mois)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Mois</th>
+                                    <th class="text-end">Revenus</th>
+                                    <th class="text-end">Dépenses</th>
+                                    <th class="text-end">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month in months_data %}
+                                <tr>
+                                    <td><strong>{{ month.month }}</strong></td>
+                                    <td class="text-end text-success">{{ month.income|floatformat:0 }} €</td>
+                                    <td class="text-end text-danger">{{ month.expense|floatformat:0 }} €</td>
+                                    <td class="text-end">
+                                        <strong class="{% if month.income|add:"-"|add:month.expense >= 0 %}text-primary{% else %}text-warning{% endif %}">
+                                            {% widthratio month.income 1 1 %}{% widthratio month.expense 1 -1 %} €
+                                        </strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liens vers les modules -->
+    <div class="row g-3 mt-3">
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-exchange-alt fa-3x text-primary mb-3"></i>
+                    <h5>Transactions</h5>
+                    <p class="text-muted">Revenus et dépenses</p>
+                    <a href="{% url 'accounting:transaction_list' %}" class="btn btn-primary">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-invoice fa-3x text-success mb-3"></i>
+                    <h5>Factures</h5>
+                    <p class="text-muted">Facturation clients</p>
+                    <a href="{% url 'accounting:invoice_list' %}" class="btn btn-success">Gérer</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card hover-shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-pie fa-3x text-warning mb-3"></i>
+                    <h5>Rapports</h5>
+                    <p class="text-muted">Analyses financières</p>
+                    <a href="{% url 'accounting:reports' %}" class="btn btn-warning">Consulter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerte factures en retard -->
+    {% if overdue_invoices_count > 0 %}
+    <div class="row mt-4">
+        <div class="col">
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Attention !</strong> Vous avez {{ overdue_invoices_count }} facture(s) en retard.
+                <a href="{% url 'accounting:invoice_list' %}?status=OVERDUE" class="alert-link">Voir les factures</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

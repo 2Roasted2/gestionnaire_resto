@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports Réservations{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-chart-bar"></i> Rapports et Statistiques
+            </h1>
+            <p class="lead text-muted">Analyse des réservations (30 derniers jours)</p>
+        </div>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Total réservations</h6>
+                    <h2 class="mb-0">{{ total_reservations }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Confirmées</h6>
+                    <h2 class="mb-0">{{ confirmed_reservations }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">Annulées</h6>
+                    <h2 class="mb-0">{{ cancelled_reservations }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-uppercase mb-0">No-show</h6>
+                    <h2 class="mb-0">{{ no_show_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Taux de confirmation -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-percent"></i> Taux de confirmation</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-3 text-success">{{ confirmation_rate|floatformat:1 }}%</div>
+                    <p class="text-muted">Des réservations sont confirmées</p>
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ confirmation_rate }}%">
+                            {{ confirmation_rate|floatformat:1 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nombre moyen de convives -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Moyenne de convives</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-3 text-primary">{{ avg_guests|floatformat:1 }}</div>
+                    <p class="text-muted">Personnes par réservation en moyenne</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Réservations par statut -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Répartition par statut</h5>
+                </div>
+                <div class="card-body">
+                    {% for stat in reservations_by_status %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ stat.status }}</strong></span>
+                            <span class="badge bg-primary">{{ stat.count }} réservation(s)</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {% if total_reservations > 0 %}{% widthratio stat.count total_reservations 100 %}{% else %}0{% endif %}%">
+                                {% if total_reservations > 0 %}
+                                    {% widthratio stat.count total_reservations 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Créneaux populaires -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-star"></i> Créneaux les plus demandés</h5>
+                </div>
+                <div class="card-body">
+                    {% for slot in popular_time_slots %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ slot.time_slot }}</strong></span>
+                            <span class="badge bg-success">{{ slot.count }} réservation(s)</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% if confirmed_reservations > 0 %}{% widthratio slot.count confirmed_reservations 100 %}{% else %}0{% endif %}%">
+                                {% if confirmed_reservations > 0 %}
+                                    {% widthratio slot.count confirmed_reservations 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted mb-0">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables les plus réservées -->
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 10 - Tables les plus réservées</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Table</th>
+                                    <th class="text-end">Nombre de réservations</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for table_stat in popular_tables %}
+                                <tr>
+                                    <td><strong>{{ forloop.counter }}</strong></td>
+                                    <td>Table {{ table_stat.table__table_number }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-primary">{{ table_stat.count }} réservation(s)</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Aucune donnée disponible</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions d'export -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-download"></i> Export des données</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Exportez les statistiques de réservations</p>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" disabled>
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger w-100" disabled>
+                                <i class="fas fa-file-pdf"></i> Export PDF
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-info w-100" disabled>
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'bookings:dashboard' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle"></i> Fonctionnalités d'export à venir...
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

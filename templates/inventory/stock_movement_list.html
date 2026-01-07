@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Mouvements de stock{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">
+                <i class="fas fa-exchange-alt"></i> Mouvements de stock
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'inventory:stock_movement_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau mouvement
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <select name="type" class="form-control">
+                        <option value="">Tous les types</option>
+                        <option value="IN">Entrée</option>
+                        <option value="OUT">Sortie</option>
+                        <option value="ADJUSTMENT">Ajustement</option>
+                        <option value="RETURN">Retour</option>
+                        <option value="WASTE">Perte/Gaspillage</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des mouvements -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Produit</th>
+                            <th>Type</th>
+                            <th>Quantité</th>
+                            <th>Prix unitaire</th>
+                            <th>Valeur totale</th>
+                            <th>Motif</th>
+                            <th>Créé par</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movement in movements %}
+                        <tr>
+                            <td>{{ movement.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'inventory:product_detail' movement.product.pk %}">
+                                    {{ movement.product.name }}
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ movement.product.reference }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if movement.movement_type == 'IN' %}success{% elif movement.movement_type == 'OUT' %}danger{% elif movement.movement_type == 'ADJUSTMENT' %}info{% elif movement.movement_type == 'RETURN' %}primary{% else %}warning{% endif %}">
+                                    {{ movement.get_movement_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if movement.movement_type == 'IN' or movement.movement_type == 'RETURN' %}
+                                    <span class="text-success">+{{ movement.quantity }}</span>
+                                {% else %}
+                                    <span class="text-danger">-{{ movement.quantity }}</span>
+                                {% endif %}
+                                {{ movement.product.get_unit_display }}
+                            </td>
+                            <td>{{ movement.unit_price }} €</td>
+                            <td><strong>{{ movement.total_value|floatformat:2 }} €</strong></td>
+                            <td>{{ movement.reason|truncatewords:5 }}</td>
+                            <td>{{ movement.created_by.get_full_name }}</td>
+                            <td>
+                                <a href="{% url 'inventory:stock_movement_delete' movement.pk %}" 
+                                   class="btn btn-sm btn-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">
+                                Aucun mouvement trouvé
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
